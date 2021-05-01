@@ -5,82 +5,64 @@
 #include <thread>
 #include <mutex>
 #include <future>
+#include <functional>
+
+#include "Piece.h"
 
 namespace chess {
+	class GameManager;
 
-	const int BLOCK_H = 7;
-	const int BLOCK_W = 13;
+	static const int BLOCK_H = 7;
+	static const int BLOCK_W = 13;
 
-	const int ICON_H = 5;
-	const int ICON_W = 7;
-
-	const unsigned char DFLAG = 0b1000000;
-	const unsigned char CASTLE[5] = {
-		0b0101010,
-		0b0111110,
-		0b0011100,
-		0b0111110,
-		0b1111111,
-	};
-	const unsigned char KNIGHT[5] = {
-		0b0111110,
-		0b1101111,
-		0b0011111,
-		0b0111110,
-		0b1111111,
-	};
-	const unsigned char BISHOP[5] = {
-		0b0001000,
-		0b0011100,
-		0b0111101,
-		0b0011110,
-		0b1111111,
-	};
-	const unsigned char QUEEN[5] = {
-		0b1010101,
-		0b0101010,
-		0b0011100,
-		0b0111110,
-		0b1111111,
-	};
-	const unsigned char KING[5] = {
-		0b0101010,
-		0b1011101,
-		0b0101010,
-		0b0111110,
-		0b1111111,
-	};
-	const unsigned char PAWN[5] = {
-		0b0000000,
-		0b0011100,
-		0b0111110,
-		0b0011100,
-		0b1111111,
-	};
+	static const int ICON_H = 5;
+	static const int ICON_W = 7;
 
 	class View {
 	public:
-		View();
+		View(GameManager* );
 		~View();
 
+		int Run();
+		int RegistMouseClick(std::function<void(int, int)> callback);
+
+		void UpdateBoard();
+		void UpdateBoard(const int row0, const int col0, const int row1, const int col1);
+
 	private:
-		unsigned char board[8 * BLOCK_H][8 * BLOCK_W] = { 0 };
+		unsigned char _bitmap[8 * BLOCK_H][8 * BLOCK_W] = { 0 };
+		GameManager* _gameManager;
 
-		bool updateRowFlag[8];
-		HANDLE hStdin;
-		HANDLE hStdout;
-		DWORD fdwSaveOldMode;
+		int _floatCol = -1;
+		int _floatRow = -1;
 
-		std::thread* handleUpdateThread;
-		std::promise<void> exitSignal;
-		std::future<void> futureObj;
+		int _selectedCol = -1;
+		int _selectedRow = -1;
 
-		std::mutex stdoutMtx;
+		std::function<void(int, int)> _mouseClickCallback;
 
-		void InitBoard();
-		void DrawPiece(unsigned char* icon, int col, int row, unsigned char color);
+		bool _updateRowFlag[8] = { false };
+		HANDLE _hStdin;
+		HANDLE _hStdout;
+		DWORD _fdwSaveOldMode;
 
+		std::thread* _handleUpdateThread;
+		std::promise<void> _exitSignal;
+		std::future<void> _futureObj;
+		std::mutex _stdoutMtx;
+
+		// update board content
+		void Draw(const int row, const int col);
+		void DrawPiece(const int row, const int col);
+		void DrawGIZMOS(const int row, const int col);
+		void DrawBackground(const int row, const int col);
+		void DrawBlock(const int row, const int col, const unsigned char color);
+
+		// update window content
 		void updateWindow(std::future<void> futureObj);
+		void FloatBlock(const int x, const int y);
+
+		// handle window event
 		void handleWindow();
 
 		// window utils

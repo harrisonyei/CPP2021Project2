@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="標頭檔\Pieces">
+      <UniqueIdentifier>{6e8672dc-67ab-4bf9-adf7-ea4afe6b576e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -29,11 +32,32 @@
     <ClInclude Include="GameManager.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="Piece.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="Bishop.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Pawn.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Piece.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Rook.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Queen.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Pieces.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Knight.h">
+      <Filter>標頭檔\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="King.h">
+      <Filter>標頭檔\Pieces</Filter>
     </ClInclude>
     <ClInclude Include="View.h">
       <Filter>標頭檔</Filter>
