@@ -4,11 +4,8 @@
 using namespace std;
 using namespace chess;
 
-
 View::View()
 {
-	InitBoard();
-
 	hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 	hStdin = GetStdHandle(STD_INPUT_HANDLE);
 	if (hStdin == INVALID_HANDLE_VALUE)
@@ -23,9 +20,16 @@ View::View()
 	if (!SetConsoleMode(hStdin, fdwMode))
 		ErrorExit(LPSTR("SetConsoleMode"));
 
+	clrscr();
+	InitBoard();
+
+	// start game
 	futureObj = exitSignal.get_future();
 	// Starting Thread & move the future object in lambda function by reference
-	handleUpdateThread = new thread(&View::thread_update, this, std::move(futureObj));
+	handleUpdateThread = new thread(&View::updateWindow, this, std::move(futureObj));
+
+	handleWindow();
+
 }
 
 View::~View()
@@ -72,23 +76,80 @@ void View::DrawPiece(unsigned char* icon, int col, int row, unsigned char color)
 	updateRowFlag[row] = true;
 }
 
-void chess::View::thread_update(std::future<void> futureObj)
+void chess::View::updateWindow(std::future<void> futureObj)
 {
-	std::cout << "Thread Start" << std::endl;
-	hStdin = GetStdHandle(STD_INPUT_HANDLE);
-	while (futureObj.wait_for(std::chrono::milliseconds(30)) == std::future_status::timeout)
+	//std::cout << "Thread Start" << std::endl;
+	while (futureObj.wait_for(std::chrono::milliseconds(300)) == std::future_status::timeout)
 	{
-		gotoxy(0, 0);
-		for (int i = 0; i < 8 * BLOCK_H; i++) {
-			for (int j = 0; j < 8 * BLOCK_W; j++) {
-				setcolor(board[i][j]);
-				std::cout << " ";
+		stdoutMtx.lock();
+		for (int row = 0; row < 8; row++) {
+			if (updateRowFlag[row]) {
+				updateRowFlag[row] = false;
+				const int offsetY = row * BLOCK_H;
+				gotoxy(0, offsetY);
+				for (int i = 0; i < BLOCK_H; i++) {
+					for (int j = 0; j < 8 * BLOCK_W; j++) {
+						setcolor(board[offsetY + i][j]);
+						std::cout << " ";
+					}
+					std::cout << std::endl;
+				}
 			}
-			std::cout << std::endl;
 		}
+		gotoxy(0, 8 * BLOCK_H);
 		setcolor(7); // normal setting
+		stdoutMtx.unlock();
 	}
-	std::cout << "Thread End" << std::endl;
+	//std::cout << "Thread End" << std::endl;
+}
+
+void chess::View::handleWindow()
+{
+	bool exitFlag = false;
+	while (!exitFlag)
+	{
+		DWORD cNumRead, i;
+		INPUT_RECORD irInBuf[32];
+
+		if (!ReadConsoleInput(
+			hStdin,      // input buffer handle
+			irInBuf,     // buffer to read into
+			32,         // size of read buffer
+			&cNumRead)) // number of records read
+			ErrorExit(LPSTR("ReadConsoleInput"));
+
+		// Dispatch the events to the appropriate handler.
+		for (i = 0; i < cNumRead; i++)
+		{
+			switch (irInBuf[i].EventType)
+			{
+			case KEY_EVENT: // keyboard input
+				//KeyEventProc(irInBuf[i].Event.KeyEvent);
+				exitFlag = true;
+				break;
+
+			case MOUSE_EVENT: // mouse input
+				stdoutMtx.lock();
+				gotoxy(0, 8 * BLOCK_H);
+				MouseEventProc(irInBuf[i].Event.MouseEvent);
+				stdoutMtx.unlock();
+				break;
+
+			case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
+				ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
+				break;
+
+			case FOCUS_EVENT:  // disregard focus events
+
+			case MENU_EVENT:   // disregard menu events
+				break;
+
+			default:
+				ErrorExit(LPSTR("Unknown event type"));
+				break;
+			}
+		}
+	}
 }
 
 
@@ -138,11 +199,12 @@ void View::ErrorExit(LPSTR lpszMessage)
 
 void View::KeyEventProc(KEY_EVENT_RECORD ker)
 {
-	printf("Key event: ");
+	//printf("Key event: ");
 
-	if (ker.bKeyDown)
+	/*if (ker.bKeyDown)
 		printf("key pressed\n");
-	else printf("key released\n");
+	else 
+		printf("key released\n");*/
 }
 
 void View::MouseEventProc(MOUSE_EVENT_RECORD mer)
@@ -156,32 +218,34 @@ void View::MouseEventProc(MOUSE_EVENT_RECORD mer)
 	case 0:
 		if (mer.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
 		{
-			printf("left button press \n");
+			printf("left button press ");
+			printf("%d, %d     \n", mer.dwMousePosition.X, mer.dwMousePosition.Y);
 		}
 		else if (mer.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
 		{
-			printf("right button press \n");
+			printf("right button press ");
+			printf("%d, %d     \n", mer.dwMousePosition.X, mer.dwMousePosition.Y);
 		}
 		else
 		{
-			printf("button press\n");
+			//printf("button press\n");
 		}
 		break;
 	case DOUBLE_CLICK:
-		printf("double click\n");
+		//printf("double click\n");
 		break;
 	case MOUSE_HWHEELED:
-		printf("horizontal mouse wheel\n");
+		//printf("horizontal mouse wheel\n");
 		break;
 	case MOUSE_MOVED:
-		printf("%d, %d\n", mer.dwMousePosition.X, mer.dwMousePosition.Y);
+		//printf("%d, %d     \n", mer.dwMousePosition.X, mer.dwMousePosition.Y);
 		//printf("mouse moved\n");
 		break;
 	case MOUSE_WHEELED:
-		printf("vertical mouse wheel\n");
+		//printf("vertical mouse wheel\n");
 		break;
 	default:
-		printf("unknown\n");
+		//printf("unknown\n");
 		break;
 	}
 }

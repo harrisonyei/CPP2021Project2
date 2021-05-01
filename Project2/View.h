@@ -75,10 +75,13 @@ namespace chess {
 		std::promise<void> exitSignal;
 		std::future<void> futureObj;
 
+		std::mutex stdoutMtx;
+
 		void InitBoard();
 		void DrawPiece(unsigned char* icon, int col, int row, unsigned char color);
 
-		void thread_update(std::future<void> futureObj);
+		void updateWindow(std::future<void> futureObj);
+		void handleWindow();
 
 		// window utils
 		void gotoxy(int x, int y);
