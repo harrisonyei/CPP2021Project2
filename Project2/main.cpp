@@ -11,10 +11,45 @@ void clrscr();
 int main()
 {
 	const unsigned char CASTLE[5] = {
-		0b1010101,
+		0b0101010,
+		0b0111110,
+		0b0011100,
+		0b0111110,
 		0b1111111,
+	};
+	const unsigned char KNIGHT[5] = {
 		0b0111110,
+		0b1101111,
+		0b0011111,
 		0b0111110,
+		0b1111111,
+	};
+	const unsigned char BISHOP[5] = {
+		0b0001000,
+		0b0011100,
+		0b0111101,
+		0b0011110,
+		0b1111111,
+	};
+	const unsigned char QUEEN[5] = {
+		0b1010101,
+		0b0101010,
+		0b0011100,
+		0b0111110,
+		0b1111111,
+	};
+	const unsigned char KING[5] = {
+		0b0101010,
+		0b1011101,
+		0b0101010,
+		0b0111110,
+		0b1111111,
+	};
+	const unsigned char PAWN[5] = {
+		0b0000000,
+		0b0011100,
+		0b0111110,
+		0b0011100,
 		0b1111111,
 	};
 
@@ -43,6 +78,53 @@ int main()
 			}
 		}
 	}
+
+	offsetX += 13;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 7; j++) {
+			if (((KNIGHT[i] << j) & 0b1000000)) {
+				board[offsetY + i][offsetX + j] = 255;
+			}
+		}
+	}
+
+	offsetX += 13;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 7; j++) {
+			if (((BISHOP[i] << j) & 0b1000000)) {
+				board[offsetY + i][offsetX + j] = 255;
+			}
+		}
+	}
+
+	offsetX += 13;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 7; j++) {
+			if (((QUEEN[i] << j) & 0b1000000)) {
+				board[offsetY + i][offsetX + j] = 255;
+			}
+		}
+	}
+
+	offsetX += 13;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 7; j++) {
+			if (((KING[i] << j) & 0b1000000)) {
+				board[offsetY + i][offsetX + j] = 255;
+			}
+		}
+	}
+
+	offsetY += 7;
+	offsetX = 3;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 7; j++) {
+			if (((PAWN[i] << j) & 0b1000000)) {
+				board[offsetY + i][offsetX + j] = 255;
+			}
+		}
+	}
+
 	while (cin.get())
 	{
 		for (int i = 0; i < 56; i++) {
