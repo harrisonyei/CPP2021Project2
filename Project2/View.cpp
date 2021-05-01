@@ -1,5 +1,6 @@
 #include "View.h"
 #include "GameManager.h"
+#include "Player.h"
 #include <iostream>
 
 using namespace std;
@@ -59,6 +60,9 @@ namespace chess {
 		_hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 		_hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
+		HWND hWnd = GetConsoleWindow();
+		ShowWindow(hWnd, SW_SHOWMAXIMIZED);
+
 		if ((_hStdout == INVALID_HANDLE_VALUE) || (_hStdin == INVALID_HANDLE_VALUE))
 			ErrorExit(LPSTR("GetStdHandle"));
 
@@ -85,6 +89,49 @@ namespace chess {
 		SetConsoleMode(_hStdin, _fdwSaveOldMode);
 	}
 
+	void View::Clear()
+	{
+		clrscr();
+	}
+
+	void View::SetActive(bool active)
+	{
+		_active = active;
+	}
+
+	void View::HandleMouseSelect(int& row, int& col)
+	{
+		bool exitFlag = false;
+		while (!exitFlag)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(33));
+
+			DWORD cNumRead, i;
+			INPUT_RECORD irInBuf[32];
+
+			if (!ReadConsoleInput(
+				_hStdin,      // input buffer handle
+				irInBuf,     // buffer to read into
+				32,         // size of read buffer
+				&cNumRead)) // number of records read
+				//ErrorExit(LPSTR("ReadConsoleInput"));
+				continue;
+
+			// Dispatch the events to the appropriate handler.
+			for (i = 0; i < cNumRead; i++)
+			{
+				switch (irInBuf[i].EventType)
+				{
+				case MOUSE_EVENT: // mouse input
+					MouseEventProc(irInBuf[i].Event.MouseEvent);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+
 	int chess::View::Run()
 	{
 		try {
@@ -98,7 +145,7 @@ namespace chess {
 			_handleUpdateThread = new thread(&View::updateWindow, this, std::move(_futureObj));
 
 			// Start handling console input event at this thread
-			handleWindow();
+			//handleWindow();
 		}
 		catch (...) {
 			return -1;
@@ -107,14 +154,24 @@ namespace chess {
 		return 0;
 	}
 
-	int chess::View::RegistMouseClick(std::function<void(int, int)> callback)
+	int chess::View::RegistMouseClick(std::function<void(int, int, int)> callback)
 	{
-		_mouseClickCallback = std::bind(callback, std::placeholders::_1, std::placeholders::_2);
+		_mouseClickCallback = std::bind(callback, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
 		if (!_mouseClickCallback)
 			return -1;
 
 		return 0;
+	}
+
+	void View::SetHints(const int* rows, const int* cols, const int size)
+	{
+	}
+	void View::SetSelect(const int row, const int col)
+	{
+	}
+	void View::SetCheck(const int row, const int col)
+	{
 	}
 
 	void View::UpdateBoard()
@@ -199,14 +256,11 @@ namespace chess {
 
 	void View::DrawGIZMOS(const int row, const int col)
 	{
-		if (col == _floatCol && row == _floatRow) {
-			// color : 68 dark red
-			DrawBlock(row, col, 68);
-		}
-		else if (col == _selectedCol && row == _selectedRow) {
-			// color : 238 yellow
-			DrawBlock(row, col, 238);
-		}
+		// color : 68 dark red
+		//if (col == _selectedCol && row == _selectedRow) {
+		//	// color : 238 yellow
+		//	DrawBlock(row, col, 238);
+		//}
 	}
 
 	void chess::View::DrawBackground(const int row, const int col)
@@ -228,43 +282,31 @@ namespace chess {
 		_updateRowFlag[row] = true;
 	}
 
-	void chess::View::FloatBlock(const int x, const int y)
-	{
-		std::unique_lock<std::mutex> lock(_stdoutMtx);
-
-		const int lastCol = _floatCol;
-		const int lastRow = _floatRow;
-
-		_floatCol = x / BLOCK_W;
-		_floatRow = y / BLOCK_H;
-
-		Draw(lastRow, lastCol);
-		Draw(_floatRow, _floatCol);
-
-		//std::cout << _lastSelectX << " " << _lastSelectY << std::endl;
-	}
-
 	void chess::View::updateWindow(std::future<void> futureObj)
 	{
+		int c = 0;
 		while (futureObj.wait_for(std::chrono::milliseconds(100)) == std::future_status::timeout)
 		{
-			std::unique_lock<std::mutex> lock(_stdoutMtx);
-			for (int row = 0; row < 8; row++) {
-				if (_updateRowFlag[row]) {
-					_updateRowFlag[row] = false;
-					const int offsetY = row * BLOCK_H;
-					gotoxy(0, offsetY);
-					for (int i = 0; i < BLOCK_H; i++) {
-						for (int j = 0; j < 8 * BLOCK_W; j++) {
-							setcolor(_bitmap[offsetY + i][j]);
-							std::cout << ' ';
+			if (_active) {
+				std::unique_lock<std::mutex> lock(_stdoutMtx);
+				for (int row = 0; row < 8; row++) {
+					if (_updateRowFlag[row]) {
+						_updateRowFlag[row] = false;
+						const int offsetY = row * BLOCK_H;
+						gotoxy(0, offsetY);
+						for (int i = 0; i < BLOCK_H; i++) {
+							for (int j = 0; j < 8 * BLOCK_W; j++) {
+								setcolor(_bitmap[offsetY + i][j]);
+								std::cout << ' ';
+							}
+							std::cout << std::endl;
 						}
-						std::cout << std::endl;
 					}
 				}
+				gotoxy(0, 8 * BLOCK_H);
+				setcolor(7); // normal setting
+				std::cout << "update "<< c++ << "    " << std::endl;
 			}
-			gotoxy(0, 8 * BLOCK_H);
-			setcolor(7); // normal setting
 		}
 	}
 
@@ -273,7 +315,7 @@ namespace chess {
 		bool exitFlag = false;
 		while (!exitFlag)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(42));
+			std::this_thread::sleep_for(std::chrono::milliseconds(33));
 
 			DWORD cNumRead, i;
 			INPUT_RECORD irInBuf[32];
@@ -297,7 +339,6 @@ namespace chess {
 					break;
 
 				case MOUSE_EVENT: // mouse input
-					//gotoxy(0, 8 * BLOCK_H);
 					MouseEventProc(irInBuf[i].Event.MouseEvent);
 					break;
 
@@ -305,13 +346,7 @@ namespace chess {
 					ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
 					break;
 
-				case FOCUS_EVENT:  // disregard focus events
-
-				case MENU_EVENT:   // disregard menu events
-					break;
-
 				default:
-					ErrorExit(LPSTR("Unknown event type"));
 					break;
 				}
 			}
@@ -379,13 +414,14 @@ namespace chess {
 			if (mer.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
 			{
 				if (_mouseClickCallback) {
-					_mouseClickCallback(_floatRow, _floatCol);
+					_mouseClickCallback(mer.dwMousePosition.Y / BLOCK_H, mer.dwMousePosition.X / BLOCK_W, 0);
 				}
 			}
 			else if (mer.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
 			{
-				/*printf("right button press ");
-				printf("%d, %d     \n", mer.dwMousePosition.X, mer.dwMousePosition.Y);*/
+				if (_mouseClickCallback) {
+					_mouseClickCallback(mer.dwMousePosition.Y / BLOCK_H, mer.dwMousePosition.X / BLOCK_W, 1);
+				}
 			}
 			break;
 		case DOUBLE_CLICK:
@@ -395,7 +431,6 @@ namespace chess {
 			//printf("horizontal mouse wheel\n");
 			break;
 		case MOUSE_MOVED:
-			FloatBlock(mer.dwMousePosition.X, mer.dwMousePosition.Y);
 			//printf("%d, %d     \n", mer.dwMousePosition.X, mer.dwMousePosition.Y);
 			//printf("mouse moved\n");
 			break;
@@ -410,11 +445,6 @@ namespace chess {
 
 	void View::ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD wbsr)
 	{
-		std::unique_lock<std::mutex> lock(_stdoutMtx);
-		for (int row = 0; row < 8; row++) {
-			_updateRowFlag[row] = true;
-		}
-		printf("Resize event\n");
-		printf("Console screen buffer is %d columns by %d rows.\n", wbsr.dwSize.X, wbsr.dwSize.Y);
+		UpdateBoard();
 	}
 }

@@ -5,6 +5,7 @@ namespace chess {
 
 	class View;
 	class Piece;
+	class Player;
 
 	class GameManager
 	{
@@ -16,6 +17,7 @@ namespace chess {
 		};
 
 	public:
+
 		GameManager();
 		~GameManager();
 
@@ -24,14 +26,15 @@ namespace chess {
 		friend class View;
 
 	private:
+		Player* player[2];
 
 		State _state;
 		View* _view;
 		Piece* _board[8][8];
+		Piece* _pieces[2][16];
 		
 		void InitBoard();
 
-		void OnMouseClick(int x, int y);
 
 	};
 

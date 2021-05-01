@@ -12,7 +12,7 @@ namespace chess {
 
 		}
 
-		virtual void GetMovements(const Piece* board, const int x, const int y, bool* movements) {
+		void GetMovements(const Piece* board, const int x, const int y, bool* movements) override {
 
 		}
 
