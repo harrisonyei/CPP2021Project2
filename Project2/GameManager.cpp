@@ -56,8 +56,8 @@ chess::GameManager::~GameManager()
 	delete[] _moves;
 
 	for (int i = 0; i < 2; i++)
-		delete[] _pieces[i];
-	delete[] _pieces;
+		for (int j = 0; j < 9; j++)
+			delete _pieces[i][j];
 
 }
 
@@ -213,8 +213,21 @@ void chess::GameManager::UpdateState()
 
 				updateLocations.clear();
 
-				// [TODO] if castling
-
+				// if is castling
+				if ((movePiece->GetType() == Piece::PieceType::KING) && abs(tarCol - srcCol) > 1) {
+					if (tarCol == 2) {
+						_board[tarRow][3] = _board[tarRow][0];
+						_board[tarRow][0] = nullptr;
+						updateLocations.push_back(std::make_pair(tarRow, 3));
+						updateLocations.push_back(std::make_pair(tarRow, 0));
+					}
+					else if (tarCol == 6) {
+						_board[tarRow][5] = _board[tarRow][7];
+						_board[tarRow][7] = nullptr;
+						updateLocations.push_back(std::make_pair(tarRow, 5));
+						updateLocations.push_back(std::make_pair(tarRow, 7));
+					}
+				}
 
 				// if ate a temp pawn : passant capture
 				if (targetPiece != nullptr && (movePiece->GetType() == Piece::PieceType::PAWN && targetPiece->GetType() == Piece::PieceType::TMP_PAWN)) {
