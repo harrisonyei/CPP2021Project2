@@ -33,8 +33,9 @@ namespace chess {
 		State _state;
 		View* _view;
 		Piece*** _board;
-		Piece* _pieces[2][7];
-		
+		Piece* _pieces[2][9];
+		bool** _moves;
+
 		void InitBoard();
 		void UpdateState();
 

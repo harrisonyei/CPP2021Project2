@@ -12,6 +12,8 @@ namespace chess {
 
 		void GetMovements(Piece const* const* const* board, const int x, const int y, bool** movements) const override;
 
+	private:
+		bool isSafe(Piece const* const* const* board, const int irow, const int icol) const;
 	};
 }
 

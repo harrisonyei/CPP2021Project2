@@ -123,11 +123,13 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 					_source_col = col;
 				}
 				else {
-					_state = SelectState::END;
-					_target_row = row;
-					_target_col = col;
+					if (_moves[row][col]) {
+						_state = SelectState::END;
+						_target_row = row;
+						_target_col = col;
 
-					_cv.notify_all();
+						_cv.notify_all();
+					}
 				}
 			}
 			break;

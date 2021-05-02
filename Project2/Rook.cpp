@@ -1,9 +1,9 @@
 #include "Rook.h"
+#include "King.h"
 
 namespace chess {
 
 	chess::Rook::Rook(const PieceColor color) : Piece(color, PieceType::ROOK) {
-
 	}
 
 	const int DIRS[4][2] = {
@@ -41,14 +41,5 @@ namespace chess {
 				icol = icol + DIRS[i][1];
 			}
 		}
-
-		// castling
-		/*
-		王或參與易位的車以前曾移動過（無論是否回到了原來的位置）
-		王正在被將軍
-		易位時王要經過的格正受到對方的進攻
-		易位後王將佔據的格正受到對方的進攻
-		王與參與易位的車之間有其他棋子阻隔
-		*/
 	}
 }

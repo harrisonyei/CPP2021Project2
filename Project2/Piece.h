@@ -23,7 +23,7 @@ namespace chess {
 		};
 
 	public:
-		Piece(const PieceColor color, const PieceType type) : _color(color), _type(type){
+		Piece(const PieceColor color, const PieceType type) : _color(color), _type(type), _moved(false){
 
 		}
 		const PieceType GetType() const {
@@ -32,12 +32,23 @@ namespace chess {
 		const PieceColor GetColor() const {
 			return _color;
 		}
+		const bool GetMoved() const {
+			return _moved;
+		}
+
+		void ResetMoved() {
+			_moved = false;
+		}
+		void SetMoveed() {
+			_moved = true;
+		}
 
 		virtual void GetMovements(Piece const*const*const* board, const int row, const int col, bool ** movements) const = 0;
 
 	protected:
 		PieceColor _color;
 		PieceType _type;
+		bool _moved;
 	};
 
 }
