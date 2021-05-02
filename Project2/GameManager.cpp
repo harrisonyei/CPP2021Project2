@@ -384,11 +384,11 @@ void chess::GameManager::UpdateState()
 				King* tempKing = (King*)(_pieces[_playerIdx][5]);
 				bool safe = tempKing->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
 				// check checkmate
-				time_t s_time = clock();
+				//time_t s_time = clock();
 				bool haveValidMove = HaveAvaliableMove();
-				time_t e_time = clock();
-				_view->SetText("TIME :  " + std::to_string(e_time - s_time), 7);
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				//time_t e_time = clock();
+				//_view->SetText("TIME :  " + std::to_string(e_time - s_time), 7);
+				//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 				if (haveValidMove) {
 					if (!safe) {
@@ -403,7 +403,7 @@ void chess::GameManager::UpdateState()
 				else {
 					if (!safe) {
 						// game over
-						if (_playerIdx == 1) {
+						if (_playerIdx == 0) {
 							_view->SetText("--BLACK WINS! PRESS ANY KEY TO EXIT--");
 						}
 						else {
