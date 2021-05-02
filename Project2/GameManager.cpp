@@ -131,13 +131,19 @@ void chess::GameManager::UpdateState()
 		_state = State::PLAY;
 		break;
 	case chess::GameManager::State::PLAY:
-		int selected_row, selected_col;
-		_players[_playerIdx]->OnSelect(_board, selected_row, selected_col);
+		int srcRow, srcCol, tarRow, tarCol;
+		_players[_playerIdx]->OnSelect(_board, srcRow, srcCol, tarRow, tarCol);
+
+		_board[tarRow][tarCol] = _board[srcRow][srcCol];
+		_board[srcRow][srcCol] = nullptr;
+		_view->UpdateBoard(srcRow, srcCol, tarRow, tarCol);
+
 		// if avaliable
 		//     move
 		//     switch player
 		// else if not avaliable
 		//    hint player to reselect avaliable move
+
 		break;
 	case chess::GameManager::State::END:
 		break;

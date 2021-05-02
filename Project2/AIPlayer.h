@@ -7,7 +7,8 @@ namespace chess {
 	class AIPlayer : public Player {
 	public:
 		AIPlayer();
-		void OnSelect(Piece const* const* const*  board, int& row, int& col) override;
+		void OnSelect(Piece const* const* const* board, int& sourceRow, int& sourceCol, int& targetRow, int& targetCol) override;
+		void OnUpgrade(Piece const* const* const* board, const int row, const int col, Piece::PieceType& upgradeType) override;
 	private:
 	};
 

@@ -7,9 +7,18 @@
 namespace chess {
 	class View;
 	class HumanPlayer : public Player{
+
+		enum class SelectState
+		{
+			SELECT_PIECE,
+			SELECT_MOVE,
+			END
+		};
+
 	public:
 		HumanPlayer(View* view);
-		void OnSelect(Piece const* const* const*  board, int& row, int& col) override;
+		void OnSelect(Piece const* const* const* board, int& sourceRow, int& sourceCol, int& targetRow, int& targetCol) override;
+		void OnUpgrade(Piece const* const* const* board, const int row, const int col, Piece::PieceType& upgradeType) override;
 		void OnMouseClick(int row, int col, int btn);
 		void OnExit();
 	private:
@@ -17,8 +26,13 @@ namespace chess {
 		std::condition_variable _cv;
 		std::mutex _mtx;
 
-		int _select_x = 0;
-		int _select_y = 0;
+		SelectState _state = SelectState::END;
+
+		int _source_col = 0;
+		int _source_row = 0;
+
+		int _target_col = 0;
+		int _target_row = 0;
 	};
 
 }
