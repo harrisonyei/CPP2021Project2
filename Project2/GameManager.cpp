@@ -120,6 +120,48 @@ int chess::GameManager::Run()
 	return 0;
 }
 
+bool chess::GameManager::HaveAvaliableMove()
+{
+	// king
+	King* king = (King*)(_pieces[_playerIdx][5]);
+	const Piece::PieceColor color = king->GetColor();
+
+	for (int row = 0; row < 8; row++) {
+		for (int col = 0; col < 8; col++) {
+			Piece* movePiece = _board[row][col];
+			if (movePiece != nullptr && movePiece->GetColor() == color) {
+				movePiece->GetMovements(_board, row, col, _moves);
+				for (int i = 0; i < 8; i++) {
+					for (int j = 0; j < 8; j++) {
+						if (_moves[i][j]) {
+							Piece* targetPiece = _board[i][j];
+							if (movePiece->GetType() == Piece::PieceType::KING) {
+								return true;
+							}
+							else {
+								// predict move
+								_board[row][col] = nullptr;
+								_board[i][j] = movePiece;
+								bool safe = king->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
+								// restore
+								_board[row][col] = movePiece;
+								_board[i][j] = targetPiece;
+
+								if (safe) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+
+			}
+		}
+	}
+
+	return false;
+}
+
 void chess::GameManager::InitBoard()
 {
 	for (int i = 0; i < 8; i++) {
@@ -168,7 +210,8 @@ void chess::GameManager::InitBoard()
 	_view->ClearGizmos(View::GizmosType::ALL);
 	_view->UpdateBoard();
 }
-
+#include <time.h>
+#include <string>
 void chess::GameManager::UpdateState()
 {
 	std::vector<std::pair<int, int>> updateLocations;
@@ -213,18 +256,22 @@ void chess::GameManager::UpdateState()
 			Piece* targetPiece = _board[tarRow][tarCol];
 
 			if (_moves[tarRow][tarCol]) {
+				if (movePiece->GetType() == Piece::PieceType::KING) {
+					validMove = true;
+				}
+				else {
+					// predict move
+					_board[srcRow][srcCol] = nullptr;
+					_board[tarRow][tarCol] = movePiece;
 
-				// predict move
-				_board[srcRow][srcCol] = nullptr;
-				_board[tarRow][tarCol] = movePiece;
+					// king
+					King* king = (King*)(_pieces[_playerIdx][5]);
+					validMove = king->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
 
-				// king
-				King* king = (King*)(_pieces[_playerIdx][5]);
-				validMove = king->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
-
-				// restore
-				_board[srcRow][srcCol] = movePiece;
-				_board[tarRow][tarCol] = targetPiece;
+					// restore
+					_board[srcRow][srcCol] = movePiece;
+					_board[tarRow][tarCol] = targetPiece;
+				}
 			}
 
 			// if move is legal
@@ -232,8 +279,8 @@ void chess::GameManager::UpdateState()
 
 				// if is king, save position
 				if (movePiece->GetType() == Piece::PieceType::KING) {
-					_kingPos[_playerIdx][0] = tarCol;
-					_kingPos[_playerIdx][1] = tarRow;
+					_kingPos[_playerIdx][0] = tarRow;
+					_kingPos[_playerIdx][1] = tarCol;
 				}
 
 				updateLocations.clear();
@@ -332,27 +379,31 @@ void chess::GameManager::UpdateState()
 
 				// switch player
 				_playerIdx = ((_playerIdx == 0) ? 1 : 0);
-				// check checkmate
+
 				// king
 				King* tempKing = (King*)(_pieces[_playerIdx][5]);
-				if (!tempKing->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1])) {
-					tempKing->GetMovements(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1], _moves);
-					bool canMove = false;
-					for (int i = 0; i < 8; i++) {
-						for (int j = 0; j < 8; j++) {
-							if (_moves[i][j]) {
-								canMove = true;
-								break;
-							}
-						}
+				bool safe = tempKing->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
+				// check checkmate
+				time_t s_time = clock();
+				bool haveValidMove = HaveAvaliableMove();
+				time_t e_time = clock();
+				_view->SetText("TIME :  " + std::to_string(e_time - s_time), 7);
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+				if (haveValidMove) {
+					if (!safe) {
+						_view->SetGizmos(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], View::GizmosType::WARN);
+						_view->UpdateBoard(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
 					}
-
-					_view->SetGizmos(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], View::GizmosType::WARN);
-					_view->UpdateBoard(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
-
-					// game over
-					if (!canMove) {
-						if (_playerIdx == 0) {
+					else {
+						_view->ClearGizmos(View::GizmosType::WARN);
+						_view->UpdateBoard();
+					}
+				}
+				else {
+					if (!safe) {
+						// game over
+						if (_playerIdx == 1) {
 							_view->SetText("--BLACK WINS! PRESS ANY KEY TO EXIT--");
 						}
 						else {
@@ -362,11 +413,18 @@ void chess::GameManager::UpdateState()
 						std::cin.clear();
 						_getch();
 						_state = State::END;
+						return;
 					}
-				}
-				else {
-					_view->ClearGizmos(View::GizmosType::WARN);
-					_view->UpdateBoard();
+					else {
+						// draw
+						// game over
+						_view->SetText("--DRAW! PRESS ANY KEY TO EXIT--");
+						// wait for any key;
+						std::cin.clear();
+						_getch();
+						_state = State::END;
+						return;
+					}
 				}
 			}
 		}

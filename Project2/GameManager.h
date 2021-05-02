@@ -38,6 +38,8 @@ namespace chess {
 
 		bool** _moves;
 
+		bool HaveAvaliableMove();
+
 		void InitBoard();
 		void UpdateState();
 
