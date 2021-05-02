@@ -83,7 +83,9 @@ namespace chess {
 		_exitSignal.set_value();
 
 		//Wait for thread to join
-		_handleUpdateThread->join();
+		if (_handleUpdateThread) {
+			_handleUpdateThread->join();
+		}
 
 		// Restore input mode on exit.
 		SetConsoleMode(_hStdin, _fdwSaveOldMode);
@@ -135,22 +137,31 @@ namespace chess {
 	int chess::View::Run()
 	{
 		try {
+			_exitFlag = false;
 			// Clear scream
 			clrscr();
 
-			// Create an async object to store shared state
-			_futureObj = _exitSignal.get_future();
+			if (_handleUpdateThread == nullptr) {
+				// Create an async object to store shared state
+				_futureObj = _exitSignal.get_future();
 
-			// Start a window updating thread
-			_handleUpdateThread = new thread(&View::updateWindow, this, std::move(_futureObj));
+				// Start a window updating thread
+				_handleUpdateThread = new thread(&View::updateWindow, this, std::move(_futureObj));
+			}
 
-			// Start handling console input event at this thread
-			//handleWindow();
+			// start handle event
+			handleWindow();
 		}
 		catch (...) {
 			return -1;
 		}
 
+		return 0;
+	}
+
+	int View::Stop()
+	{
+		_exitFlag = true;
 		return 0;
 	}
 
@@ -171,6 +182,10 @@ namespace chess {
 	{
 	}
 	void View::SetCheck(const int row, const int col)
+	{
+	}
+
+	void View::ClearGizmos()
 	{
 	}
 
@@ -288,6 +303,7 @@ namespace chess {
 		while (futureObj.wait_for(std::chrono::milliseconds(100)) == std::future_status::timeout)
 		{
 			if (_active) {
+				_gameManager->OnUpdate(100);
 				std::unique_lock<std::mutex> lock(_stdoutMtx);
 				for (int row = 0; row < 8; row++) {
 					if (_updateRowFlag[row]) {
@@ -312,11 +328,8 @@ namespace chess {
 
 	void chess::View::handleWindow()
 	{
-		bool exitFlag = false;
-		while (!exitFlag)
+		while (!_exitFlag)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(33));
-
 			DWORD cNumRead, i;
 			INPUT_RECORD irInBuf[32];
 
@@ -334,12 +347,9 @@ namespace chess {
 				switch (irInBuf[i].EventType)
 				{
 				case KEY_EVENT: // keyboard input
+					if(irInBuf[i].Event.KeyEvent.wVirtualKeyCode ==  VK_ESCAPE)
+						_exitFlag = true;
 					//KeyEventProc(irInBuf[i].Event.KeyEvent);
-					exitFlag = true;
-					break;
-
-				case MOUSE_EVENT: // mouse input
-					MouseEventProc(irInBuf[i].Event.MouseEvent);
 					break;
 
 				case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing

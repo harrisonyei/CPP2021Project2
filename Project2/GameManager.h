@@ -34,7 +34,7 @@ namespace chess {
 		Piece* _pieces[2][16];
 		
 		void InitBoard();
-
+		void OnUpdate(int deltaTime);
 
 	};
 

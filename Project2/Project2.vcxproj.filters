@@ -27,6 +27,9 @@
     <ClCompile Include="View.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="HumanPlayer.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameManager.h">
@@ -60,6 +63,9 @@
       <Filter>標頭檔\Pieces</Filter>
     </ClInclude>
     <ClInclude Include="View.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="HumanPlayer.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>

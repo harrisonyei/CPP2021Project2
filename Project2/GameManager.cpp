@@ -46,18 +46,26 @@ chess::GameManager::~GameManager()
 
 int chess::GameManager::Run()
 {
-	_view->SetActive(false);
-	_view->Run();
-
 	while (true) {
+		_view->SetActive(false);
 		_view->Clear();
 
-		std::cout << "Play : 0" << std::endl;
-		std::cout << "CPU  : 1" << std::endl;
-		std::cout << "Exit : any key" << std::endl;
+		std::cout << "NTUST OOP2021 Project2 ¡¹CHESS¡¸ Sample Program" << std::endl;
+		std::cout << "Copyright (c) 2021 by ntust gamelab, all rights reserved." << std::endl;
+		std::cout << "*********************************************************" << std::endl;
+		std::cout << "______ _____ _____ _____ _____               ___     ___" << std::endl;
+		std::cout << "|     |  |  |   __|   __|   __|  _ _ ___ ___|_  |   |   |" << std::endl;
+		std::cout << "|   --|     |   __|__   |__   |_| | | -_|  _|_| |_ _| | |" << std::endl;
+		std::cout << "|_____|__|__|_____|_____|_____|_|\\_/|___|_| |_____|_|___|" << std::endl;
+		std::cout << std::endl;
+		std::cout << "*********************************************************" << std::endl;
+		std::cout << "|            Play : 0                                   |" << std::endl;
+		std::cout << "|            CPU  : 1                                   |" << std::endl;
+		std::cout << "|            Exit : any key                             |" << std::endl;
+		std::cout << std::endl;
+		std::cout << "Enter > ";
 
-		char cmd;
-		std::cin >> cmd;
+		char cmd = std::getchar();
 
 		if (cmd == '0') {
 
@@ -71,11 +79,9 @@ int chess::GameManager::Run()
 
 		_state = State::START;
 		InitBoard();
+
 		_view->SetActive(true);
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-
-		_view->SetActive(false);
+		_view->Run();
 	}
 
 	return 0;
@@ -90,4 +96,8 @@ void chess::GameManager::InitBoard()
 		_board[6][i] = _pieces[1][8 + i];
 	}
 	_view->UpdateBoard();
+}
+
+void chess::GameManager::OnUpdate(int deltaTime)
+{
 }
