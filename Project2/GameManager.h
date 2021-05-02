@@ -33,7 +33,7 @@ namespace chess {
 		State _state;
 		View* _view;
 		Piece*** _board;
-		Piece* _pieces[2][6];
+		Piece* _pieces[2][7];
 		
 		void InitBoard();
 		void UpdateState();

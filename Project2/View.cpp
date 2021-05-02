@@ -219,6 +219,14 @@ namespace chess {
 		Draw(row1, col1);
 	}
 
+	void View::UpdateBoard(const std::vector<std::pair<int, int>>& locs)
+	{
+		std::unique_lock<std::mutex> lock(_stdoutMtx);
+		for (auto& loc : locs) {
+			Draw(loc.first, loc.second);
+		}
+	}
+
 	void View::Draw(const int row, const int col)
 	{
 		if (row < 0 || row >= 8 || col < 0 || col >= 8)
@@ -291,15 +299,15 @@ namespace chess {
 			break;
 		case chess::View::GizmosType::SELECT:
 			// dark red 205 69
-			DrawBlock(row, col, (((row & 1) ^ (col & 1)) ? 205 : 69));
+			DrawBorder(row, col, (((row & 1) ^ (col & 1)) ? 205 : 69));
 			break;
 		case chess::View::GizmosType::HINT:
 			// yellow 238 102
-			DrawBlock(row, col, (((row & 1) ^ (col & 1)) ? 238 : 102));
+			DrawBorder(row, col, (((row & 1) ^ (col & 1)) ? 238 : 102));
 			break;
 		case chess::View::GizmosType::CHECK:
 			// bright red
-			DrawBlock(row, col, 204);
+			DrawBorder(row, col, 204);
 			break;
 		default:
 			break;
@@ -329,12 +337,23 @@ namespace chess {
 	{
 		const int w = 2;
 		const int h = 1;
-
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < BLOCK_W; j++) {
 				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
 			}
-			for (int j = 0; j < BLOCK_W * 0.2f; j++) {
+		}
+		for (int i = BLOCK_H - h; i < BLOCK_H; i++) {
+			for (int j = 0; j < BLOCK_W; j++) {
+				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
+			}
+		}
+		for (int j = 0; j < w; j++) {
+			for (int i = 0; i < BLOCK_H; i++) {
+				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
+			}
+		}
+		for (int j = BLOCK_W - w; j < BLOCK_W; j++) {
+			for (int i = 0; i < BLOCK_H; i++) {
 				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
 			}
 		}

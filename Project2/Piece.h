@@ -13,6 +13,7 @@ namespace chess {
 			BISHOP,
 			QUEEN,
 			KING,
+			TMP_PAWN,
 		};
 
 		enum class PieceColor

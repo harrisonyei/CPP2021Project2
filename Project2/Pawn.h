@@ -9,9 +9,14 @@ namespace chess {
 
 	public:
 		Pawn(const PieceColor color);
-
 		void GetMovements(Piece const* const* const* board, const int x, const int y, bool** movements) const override;
 
+	};
+
+	class TempPawn : public Piece {
+	public:
+		TempPawn(const PieceColor color);
+		void GetMovements(Piece const* const* const* board, const int x, const int y, bool** movements) const override;
 	};
 }
 

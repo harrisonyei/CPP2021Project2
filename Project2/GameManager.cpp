@@ -27,6 +27,7 @@ chess::GameManager::GameManager()
 	_pieces[0][3] = new Bishop(Piece::PieceColor::WHITE);
 	_pieces[0][4] = new Queen(Piece::PieceColor::WHITE);
 	_pieces[0][5] = new King(Piece::PieceColor::WHITE);
+	_pieces[0][6] = new TempPawn(Piece::PieceColor::WHITE);
 
 	_pieces[1][0] = new Pawn(Piece::PieceColor::BLACK);
 	_pieces[1][1] = new Rook(Piece::PieceColor::BLACK);
@@ -34,6 +35,7 @@ chess::GameManager::GameManager()
 	_pieces[1][3] = new Bishop(Piece::PieceColor::BLACK);
 	_pieces[1][4] = new Queen(Piece::PieceColor::BLACK);
 	_pieces[1][5] = new King(Piece::PieceColor::BLACK);
+	_pieces[1][6] = new TempPawn(Piece::PieceColor::BLACK);
 }
 
 chess::GameManager::~GameManager()
@@ -129,7 +131,7 @@ void chess::GameManager::InitBoard()
 
 void chess::GameManager::UpdateState()
 {
-	char c;
+	std::vector<std::pair<int, int>> updateLocations;
 	switch (_state)
 	{
 	case chess::GameManager::State::START:
@@ -161,17 +163,56 @@ void chess::GameManager::UpdateState()
 		if (srcRow >= 0 && srcRow < 8 && srcCol >= 0 && srcCol < 8 && _board[srcRow][srcCol] != nullptr &&
 			tarRow >= 0 && tarRow < 8 && tarCol >= 0 && tarCol < 8 && (_board[srcRow][srcCol]->GetColor() == _players[_playerIdx]->GetColor())) {
 			
-			//     move
-			Piece* tmp = _board[srcRow][srcCol];
-			_board[srcRow][srcCol] = nullptr;
-			_board[tarRow][tarCol] = tmp;
+			updateLocations.clear();
 
-			_view->UpdateBoard(srcRow, srcCol, tarRow, tarCol);
+			// move
+			Piece* movePiece = _board[srcRow][srcCol];
+			Piece* targetPiece = _board[tarRow][tarCol];
+
+			// if ate a temp pawn : passant capture
+			if (targetPiece != nullptr && (movePiece->GetType() == Piece::PieceType::PAWN && targetPiece->GetType() == Piece::PieceType::TMP_PAWN)) {
+				if (targetPiece->GetColor() == Piece::PieceColor::WHITE) {
+					_board[tarRow - 1][tarCol] = nullptr;
+					updateLocations.push_back(std::make_pair(tarRow - 1, tarCol));
+				}
+				else {
+					_board[tarRow + 1][tarCol] = nullptr;
+					updateLocations.push_back(std::make_pair(tarRow + 1, tarCol));
+				}
+			}
+
+			_board[srcRow][srcCol] = nullptr;
+			_board[tarRow][tarCol] = movePiece;
+
+			updateLocations.push_back(std::make_pair(srcRow, srcCol));
+			updateLocations.push_back(std::make_pair(tarRow, tarCol));
+
+			// discard temp pawn
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					if (_board[i][j] != nullptr && _board[i][j]->GetType() == Piece::PieceType::TMP_PAWN) {
+						_board[i][j] = nullptr;
+					}
+				}
+			}
+			
+			_view->UpdateBoard(updateLocations);
+			updateLocations.clear();
+
+			// if passant place one temp pawn
+			if (movePiece->GetType() == Piece::PieceType::PAWN && srcCol == tarCol){
+				if (movePiece->GetColor() == Piece::PieceColor::BLACK && tarRow == 3) {
+					_board[2][tarCol] = _pieces[1][6];
+				}
+				else if(movePiece->GetColor() == Piece::PieceColor::WHITE && tarRow == 4){
+					_board[5][tarCol] = _pieces[0][6];
+				}
+			}
 
 			// if piece can upgrade
-			if (_board[tarRow][tarCol]->GetType() == Piece::PieceType::PAWN && 
-				((_board[tarRow][tarCol]->GetColor() == Piece::PieceColor::BLACK && tarRow == 7)
-				|| (_board[tarRow][tarCol]->GetColor() == Piece::PieceColor::WHITE && tarRow == 0))
+			if (movePiece->GetType() == Piece::PieceType::PAWN &&
+				((movePiece->GetColor() == Piece::PieceColor::BLACK && tarRow == 7)
+				|| (movePiece->GetColor() == Piece::PieceColor::WHITE && tarRow == 0))
 				) {
 
 				_view->DisplayUpgrades(true);

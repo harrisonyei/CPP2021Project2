@@ -47,6 +47,7 @@ namespace chess {
 		void DisplayUpgrades(bool display);
 		void UpdateBoard();
 		void UpdateBoard(const int row0, const int col0, const int row1, const int col1);
+		void UpdateBoard(const std::vector<std::pair<int,int>>& locs);
 
 	private:
 		unsigned char _bitmap[8 * BLOCK_H][9 * BLOCK_W] = { 0 };

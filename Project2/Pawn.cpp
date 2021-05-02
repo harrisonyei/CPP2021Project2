@@ -13,15 +13,52 @@ void chess::Pawn::GetMovements(Piece const* const* const* board, const int row, 
 	}
 
 	if (_color == PieceColor::BLACK) {
-		// go down 0 to 8
-		for (int i = row + 1; i < 8 && i <= row + 2; i++) {
-			movements[i][col] = true;
+
+		// line
+		if (row == 1) {
+			movements[2][col] = true;
+			movements[3][col] = true;
+		}
+		else if(row < 7){
+			movements[row + 1][col] = true;
+		}
+
+		// diagonal
+		if (row < 7) {
+			if (col > 0 && board[row + 1][col - 1] != nullptr && board[row + 1][col - 1]->GetColor() != _color) {
+				movements[row + 1][col - 1] = true;
+			}
+			if (col < 7 && board[row + 1][col + 1] != nullptr && board[row + 1][col + 1]->GetColor() != _color) {
+				movements[row + 1][col + 1] = true;
+			}
 		}
 	}
 	else {
-		// go up 8 to 0
-		for (int i = row - 1; i >= 0 && i >= row - 2; i--) {
-			movements[i][col] = true;
+		// line
+		if (row == 6) {
+			movements[5][col] = true;
+			movements[4][col] = true;
+		}
+		else if (row > 0) {
+			movements[row - 1][col] = true;
+		}
+
+		// diagonal
+		if (row > 0) {
+			if (col > 0 && board[row - 1][col - 1] != nullptr && board[row - 1][col - 1]->GetColor() != _color) {
+				movements[row - 1][col - 1] = true;
+			}
+			if (col < 7 && board[row - 1][col + 1] != nullptr && board[row - 1][col + 1]->GetColor() != _color) {
+				movements[row - 1][col + 1] = true;
+			}
 		}
 	}
+}
+
+chess::TempPawn::TempPawn(const PieceColor color) : Piece(color, PieceType::TMP_PAWN)
+{
+}
+
+void chess::TempPawn::GetMovements(Piece const* const* const* board, const int x, const int y, bool** movements) const
+{
 }
