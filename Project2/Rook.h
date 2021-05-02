@@ -8,13 +8,9 @@ namespace chess {
 	class Rook : public Piece {
 
 	public:
-		Rook(const PieceColor color) : Piece(color, PieceType::ROOK) {
+		Rook(const PieceColor color);
 
-		}
-
-		void GetMovements(const Piece* board, const int x, const int y, bool* movements) override {
-
-		}
+		void GetMovements(Piece const* const* const* board, const int x, const int y, bool** movements) const override;
 
 	};
 }

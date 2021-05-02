@@ -21,27 +21,19 @@ chess::GameManager::GameManager()
 
 	_state = State::START;
 	_view = new View(this);
-	
-	_pieces[0][0] = new Rook(Piece::PieceColor::BLACK);
-	_pieces[0][7] = new Rook(Piece::PieceColor::BLACK);
-	_pieces[0][1] = new Knight(Piece::PieceColor::BLACK);
-	_pieces[0][6] = new Knight(Piece::PieceColor::BLACK);
-	_pieces[0][2] = new Bishop(Piece::PieceColor::BLACK);
-	_pieces[0][5] = new Bishop(Piece::PieceColor::BLACK);
-	_pieces[0][3] = new Queen(Piece::PieceColor::BLACK);
-	_pieces[0][4] = new King(Piece::PieceColor::BLACK);
-	_pieces[1][0] = new Rook(Piece::PieceColor::WHITE);
-	_pieces[1][7] = new Rook(Piece::PieceColor::WHITE);
-	_pieces[1][1] = new Knight(Piece::PieceColor::WHITE);
-	_pieces[1][6] = new Knight(Piece::PieceColor::WHITE);
-	_pieces[1][2] = new Bishop(Piece::PieceColor::WHITE);
-	_pieces[1][5] = new Bishop(Piece::PieceColor::WHITE);
-	_pieces[1][3] = new Queen(Piece::PieceColor::WHITE);
-	_pieces[1][4] = new King(Piece::PieceColor::WHITE);
-	for (int i = 8; i < 16; i++) {
-		_pieces[0][i] = new Pawn(Piece::PieceColor::BLACK);
-		_pieces[1][i] = new Pawn(Piece::PieceColor::WHITE);
-	}
+	_pieces[0][0] = new Pawn(Piece::PieceColor::WHITE);
+	_pieces[0][1] = new Rook(Piece::PieceColor::WHITE);
+	_pieces[0][2] = new Knight(Piece::PieceColor::WHITE);
+	_pieces[0][3] = new Bishop(Piece::PieceColor::WHITE);
+	_pieces[0][4] = new Queen(Piece::PieceColor::WHITE);
+	_pieces[0][5] = new King(Piece::PieceColor::WHITE);
+
+	_pieces[1][0] = new Pawn(Piece::PieceColor::BLACK);
+	_pieces[1][1] = new Rook(Piece::PieceColor::BLACK);
+	_pieces[1][2] = new Knight(Piece::PieceColor::BLACK);
+	_pieces[1][3] = new Bishop(Piece::PieceColor::BLACK);
+	_pieces[1][4] = new Queen(Piece::PieceColor::BLACK);
+	_pieces[1][5] = new King(Piece::PieceColor::BLACK);
 }
 
 chess::GameManager::~GameManager()
@@ -106,10 +98,25 @@ int chess::GameManager::Run()
 void chess::GameManager::InitBoard()
 {
 	for (int i = 0; i < 8; i++) {
-		_board[0][i] = _pieces[0][i];
-		_board[7][i] = _pieces[1][i];
-		_board[1][i] = _pieces[0][8 + i];
-		_board[6][i] = _pieces[1][8 + i];
+		for (int j = 0; j < 8; j++) {
+			_board[i][j] = nullptr;
+		}
+	}
+	_board[0][0] = _board[0][7] = _pieces[1][1];
+	_board[7][0] = _board[7][7] = _pieces[0][1];
+	_board[0][1] = _board[0][6] = _pieces[1][2];
+	_board[7][1] = _board[7][6] = _pieces[0][2];
+	_board[0][2] = _board[0][5] = _pieces[1][3];
+	_board[7][2] = _board[7][5] = _pieces[0][3];
+
+	_board[0][3] = _pieces[1][4];
+	_board[7][3] = _pieces[0][4];
+	_board[0][4] = _pieces[1][5];
+	_board[7][4] = _pieces[0][5];
+
+	for (int i = 0; i < 8; i++) {
+		_board[1][i] = _pieces[1][0];
+		_board[6][i] = _pieces[0][0];
 	}
 	_view->ClearGizmos();
 	_view->UpdateBoard();
@@ -127,7 +134,7 @@ void chess::GameManager::UpdateState()
 		_getch();
 
 		SetPlayer(0);
-		_view->SetText("START");
+		_view->SetText("--START-------------------");
 		_state = State::PLAY;
 		break;
 	case chess::GameManager::State::PLAY:
@@ -135,16 +142,46 @@ void chess::GameManager::UpdateState()
 		_players[_playerIdx]->OnSelect(_board, srcRow, srcCol, tarRow, tarCol);
 
 		if (_board[srcRow][srcCol] != nullptr) {
+			// if avaliable
+			//     move
 			_board[tarRow][tarCol] = _board[srcRow][srcCol];
 			_board[srcRow][srcCol] = nullptr;
 			_view->UpdateBoard(srcRow, srcCol, tarRow, tarCol);
-		}
 
-		// if avaliable
-		//     move
-		//     switch player
-		// else if not avaliable
-		//    hint player to reselect avaliable move
+			// if piece can upgrade
+			if (_board[tarRow][tarCol]->GetType() == Piece::PieceType::PAWN && 
+				((_board[tarRow][tarCol]->GetColor() == Piece::PieceColor::BLACK && tarRow == 7)
+				|| (_board[tarRow][tarCol]->GetColor() == Piece::PieceColor::WHITE && tarRow == 0))
+				) {
+				Piece::PieceType upgradeType;
+				_players[_playerIdx]->OnUpgrade(_board, tarRow, tarCol, upgradeType);
+				switch (upgradeType)
+				{
+				case Piece::PieceType::ROOK:
+					_board[tarRow][tarCol] = _pieces[_playerIdx][1];
+					break;
+				case Piece::PieceType::KNIGHT:
+					_board[tarRow][tarCol] = _pieces[_playerIdx][2];
+					break;
+				case Piece::PieceType::BISHOP:
+					_board[tarRow][tarCol] = _pieces[_playerIdx][3];
+					break;
+				case Piece::PieceType::QUEEN:
+				default:
+					_board[tarRow][tarCol] = _pieces[_playerIdx][4];
+					break;
+				}
+				_view->UpdateBoard(tarRow, tarCol, tarRow, tarCol);
+			}
+
+			// switch player
+			// check checkmate
+		}
+		else {
+			_view->SetText("--INVALID MOVE----");
+			// else if not avaliable
+			//    hint player to reselect avaliable move
+		}
 
 		break;
 	case chess::GameManager::State::END:

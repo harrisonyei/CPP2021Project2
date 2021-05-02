@@ -1,16 +1,31 @@
 #include "HumanPlayer.h"
 #include "View.h"
+//#include "Pieces.h"
 #include <string>
 
 chess::HumanPlayer::HumanPlayer(View* view) :Player()
 {
+	_board = nullptr;
+
+	_moves = new bool* [8];
+	for (int i = 0; i < 8; i++)
+		_moves[i] = new bool[8];
+
 	_view = view;
+}
+
+chess::HumanPlayer::~HumanPlayer()
+{
+	for (int i = 0; i < 8; i++)
+		delete[] _moves[i];
+	delete[] _moves;
 }
 
 void chess::HumanPlayer::OnSelect(Piece const* const* const* board, int & sourceRow, int & sourceCol, int& targetRow, int& targetCol)
 {
-	_state = SelectState::SELECT_PIECE;
+	_board = board;
 
+	_state = SelectState::SELECT_PIECE;
 	// run handle with mouse callback
 	_view->ReadInput(
 		std::bind(&HumanPlayer::OnMouseClick, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
@@ -34,7 +49,7 @@ void chess::HumanPlayer::OnSelect(Piece const* const* const* board, int & source
 
 void chess::HumanPlayer::OnUpgrade(Piece const* const* const* board, const int row, const int col, Piece::PieceType& upgradeType)
 {
-	upgradeType = Piece::PieceType::EMPTY;
+	upgradeType = Piece::PieceType::QUEEN;
 }
 
 void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
@@ -47,15 +62,27 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 			switch (_state)
 			{
 			case chess::HumanPlayer::SelectState::SELECT_PIECE:
-				_view->ClearGizmos();
-				_view->SetGizmos(row, col, View::GizmosType::SELECT);
-				_view->UpdateBoard();
+				
+				if (_board[row][col] != nullptr) {
+					_view->ClearGizmos();
+					_view->SetGizmos(row, col, View::GizmosType::SELECT);
 
-				_state = SelectState::SELECT_MOVE;
+					_board[row][col]->GetMovements(_board, row, col, _moves);
 
-				_source_row = row;
-				_source_col = col;
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++)
+						{
+							if(_moves[i][j])
+								_view->SetGizmos(row, col, View::GizmosType::HINT);
+						}
+					}
+					_view->UpdateBoard();
 
+					_state = SelectState::SELECT_MOVE;
+
+					_source_row = row;
+					_source_col = col;
+				}
 				break;
 			case chess::HumanPlayer::SelectState::SELECT_MOVE:
 

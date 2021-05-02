@@ -7,8 +7,7 @@ namespace chess {
 	public:
 		enum class PieceType
 		{
-			EMPTY = 0,
-			PAWN,
+			PAWN = 0,
 			ROOK,
 			KNIGHT,
 			BISHOP,
@@ -18,8 +17,8 @@ namespace chess {
 
 		enum class PieceColor
 		{
-			BLACK = 0,
-			WHITE,
+			WHITE = 0,
+			BLACK,
 		};
 
 	public:
@@ -33,7 +32,7 @@ namespace chess {
 			return _color;
 		}
 
-		virtual void GetMovements(const Piece* board, const int x, const int y, bool* movements) = 0;
+		virtual void GetMovements(Piece const*const*const* board, const int x, const int y, bool ** movements) const = 0;
 
 	private:
 		PieceColor _color;

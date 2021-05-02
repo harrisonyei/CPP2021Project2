@@ -17,6 +17,8 @@ namespace chess {
 
 	public:
 		HumanPlayer(View* view);
+		~HumanPlayer();
+
 		void OnSelect(Piece const* const* const* board, int& sourceRow, int& sourceCol, int& targetRow, int& targetCol) override;
 		void OnUpgrade(Piece const* const* const* board, const int row, const int col, Piece::PieceType& upgradeType) override;
 		void OnMouseClick(int row, int col, int btn);
@@ -25,6 +27,9 @@ namespace chess {
 		View* _view;
 		std::condition_variable _cv;
 		std::mutex _mtx;
+
+		Piece const* const* const* _board;
+		bool** _moves;
 
 		SelectState _state = SelectState::END;
 

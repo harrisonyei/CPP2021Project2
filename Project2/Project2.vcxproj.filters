@@ -16,6 +16,9 @@
     <Filter Include="標頭檔\Pieces">
       <UniqueIdentifier>{6e8672dc-67ab-4bf9-adf7-ea4afe6b576e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="來源檔案\Pieces">
+      <UniqueIdentifier>{6e3a34f1-4361-4f5d-a554-31a346797405}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -32,6 +35,24 @@
     </ClCompile>
     <ClCompile Include="AIPlayer.cpp">
       <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="Queen.cpp">
+      <Filter>來源檔案\Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="Pawn.cpp">
+      <Filter>來源檔案\Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="Knight.cpp">
+      <Filter>來源檔案\Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="King.cpp">
+      <Filter>來源檔案\Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="Bishop.cpp">
+      <Filter>來源檔案\Pieces</Filter>
+    </ClCompile>
+    <ClCompile Include="Rook.cpp">
+      <Filter>來源檔案\Pieces</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
