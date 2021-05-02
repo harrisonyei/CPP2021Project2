@@ -134,9 +134,11 @@ void chess::GameManager::UpdateState()
 		int srcRow, srcCol, tarRow, tarCol;
 		_players[_playerIdx]->OnSelect(_board, srcRow, srcCol, tarRow, tarCol);
 
-		_board[tarRow][tarCol] = _board[srcRow][srcCol];
-		_board[srcRow][srcCol] = nullptr;
-		_view->UpdateBoard(srcRow, srcCol, tarRow, tarCol);
+		if (_board[srcRow][srcCol] != nullptr) {
+			_board[tarRow][tarCol] = _board[srcRow][srcCol];
+			_board[srcRow][srcCol] = nullptr;
+			_view->UpdateBoard(srcRow, srcCol, tarRow, tarCol);
+		}
 
 		// if avaliable
 		//     move
