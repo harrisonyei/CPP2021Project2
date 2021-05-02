@@ -321,7 +321,8 @@ namespace chess {
 				}
 				gotoxy(0, 8 * BLOCK_H);
 				setcolor(7); // normal setting
-				std::cout << "update "<< c++ << "    " << std::endl;
+				std::cout << "update " << c++ << "    " << std::endl;
+				std::cout << "ESC - back to menu" << std::endl;
 			}
 		}
 	}

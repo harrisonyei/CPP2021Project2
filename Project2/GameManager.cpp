@@ -6,6 +6,8 @@
 #include <functional>
 #include <iostream>
 
+#include <conio.h>
+
 chess::GameManager::GameManager()
 {
 	for (int i = 0; i < 8; i++) {
@@ -65,8 +67,7 @@ int chess::GameManager::Run()
 		std::cout << std::endl;
 		std::cout << "Enter > ";
 
-		char cmd = std::getchar();
-
+		char cmd = _getch();
 		if (cmd == '0') {
 
 		}
