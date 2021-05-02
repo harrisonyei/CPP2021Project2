@@ -44,11 +44,12 @@ namespace chess {
 		void SetGizmos(const int row, const int col, const View::GizmosType type);
 		void ClearGizmos();
 
+		void DisplayUpgrades(bool display);
 		void UpdateBoard();
 		void UpdateBoard(const int row0, const int col0, const int row1, const int col1);
 
 	private:
-		unsigned char _bitmap[8 * BLOCK_H][8 * BLOCK_W] = { 0 };
+		unsigned char _bitmap[8 * BLOCK_H][9 * BLOCK_W] = { 0 };
 		GizmosType _gizmos[8][8];
 		GameManager* _gameManager;
 
@@ -74,7 +75,7 @@ namespace chess {
 
 		// update board content
 		void Draw(const int row, const int col);
-		void DrawPiece(const int row, const int col);
+		void DrawPiece(const int row, const int col, Piece* piece = nullptr);
 		void DrawGIZMOS(const int row, const int col);
 		void DrawBackground(const int row, const int col);
 		void DrawBlock(const int row, const int col, const unsigned char color);

@@ -12,6 +12,7 @@ namespace chess {
 		{
 			SELECT_PIECE,
 			SELECT_MOVE,
+			SELECT_UPGRADE,
 			END
 		};
 
@@ -38,6 +39,8 @@ namespace chess {
 
 		int _target_col = 0;
 		int _target_row = 0;
+
+		Piece::PieceType _upgradeType = Piece::PieceType::QUEEN;
 	};
 
 }

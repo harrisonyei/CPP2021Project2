@@ -21,7 +21,7 @@ chess::HumanPlayer::~HumanPlayer()
 	delete[] _moves;
 }
 
-void chess::HumanPlayer::OnSelect(Piece const* const* const* board, int & sourceRow, int & sourceCol, int& targetRow, int& targetCol)
+void chess::HumanPlayer::OnSelect(Piece const* const* const* board, int& sourceRow, int& sourceCol, int& targetRow, int& targetCol)
 {
 	_board = board;
 
@@ -49,20 +49,32 @@ void chess::HumanPlayer::OnSelect(Piece const* const* const* board, int & source
 
 void chess::HumanPlayer::OnUpgrade(Piece const* const* const* board, const int row, const int col, Piece::PieceType& upgradeType)
 {
-	upgradeType = Piece::PieceType::QUEEN;
+	_board = board;
+
+	_state = SelectState::SELECT_UPGRADE;
+
+	// run handle with mouse callback
+	_view->ReadInput(
+		std::bind(&HumanPlayer::OnMouseClick, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+		std::bind(&HumanPlayer::OnExit, this));
+
+	std::unique_lock<std::mutex> lock(_mtx);
+	_cv.wait(lock);
+
+	_view->StopReadInput();
+
+	upgradeType = _upgradeType;
 }
 
 void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 {
 	std::lock_guard<std::mutex> lock(_mtx);
 	if (btn == 0) {
-
 		// select piece
-		if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-			switch (_state)
-			{
-			case chess::HumanPlayer::SelectState::SELECT_PIECE:
-				
+		switch (_state)
+		{
+		case chess::HumanPlayer::SelectState::SELECT_PIECE:
+			if (row >= 0 && row < 8 && col >= 0 && col < 8) {
 				if (_board[row][col] != nullptr) {
 					_view->ClearGizmos();
 					_view->SetGizmos(row, col, View::GizmosType::SELECT);
@@ -72,7 +84,7 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 					for (int i = 0; i < 8; i++) {
 						for (int j = 0; j < 8; j++)
 						{
-							if(_moves[i][j])
+							if (_moves[i][j])
 								_view->SetGizmos(row, col, View::GizmosType::HINT);
 						}
 					}
@@ -83,27 +95,54 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 					_source_row = row;
 					_source_col = col;
 				}
-				break;
-			case chess::HumanPlayer::SelectState::SELECT_MOVE:
-
+			}
+			break;
+		case chess::HumanPlayer::SelectState::SELECT_MOVE:
+			if (row >= 0 && row < 8 && col >= 0 && col < 8) {
 				_state = SelectState::END;
 
 				_target_row = row;
 				_target_col = col;
 
 				_cv.notify_all();
-				break;
-			default:
-				_cv.notify_all();
-				break;
 			}
+			break;
+		case chess::HumanPlayer::SelectState::SELECT_UPGRADE:
+			if (_color == Piece::PieceColor::BLACK) {
+				row = row - 4;
+			}
+			if (row >= 0 && row < 4 && col == 8) {
+
+				_state = SelectState::END;
+
+				_target_row = row;
+				_target_col = col;
+
+				_upgradeType = (Piece::PieceType)(row + 1);
+
+				_cv.notify_all();
+			}
+			break;
+		default:
+			_cv.notify_all();
+			break;
 		}
 	}
 	else if (btn == 1) {
-		// back to select piece
-		_state = SelectState::SELECT_PIECE;
-		_view->ClearGizmos();
-		_view->UpdateBoard();
+		switch (_state)
+		{
+		case chess::HumanPlayer::SelectState::SELECT_PIECE:
+		case chess::HumanPlayer::SelectState::SELECT_MOVE:
+			// back to select piece
+			_state = SelectState::SELECT_PIECE;
+			_view->ClearGizmos();
+			_view->UpdateBoard();
+		case chess::HumanPlayer::SelectState::SELECT_UPGRADE:
+			break;
+		default:
+			_cv.notify_all();
+			break;
+		}
 	}
 }
 

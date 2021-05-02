@@ -173,8 +173,12 @@ void chess::GameManager::UpdateState()
 				((_board[tarRow][tarCol]->GetColor() == Piece::PieceColor::BLACK && tarRow == 7)
 				|| (_board[tarRow][tarCol]->GetColor() == Piece::PieceColor::WHITE && tarRow == 0))
 				) {
+
+				_view->DisplayUpgrades(true);
+
 				Piece::PieceType upgradeType;
 				_players[_playerIdx]->OnUpgrade(_board, tarRow, tarCol, upgradeType);
+
 				switch (upgradeType)
 				{
 				case Piece::PieceType::ROOK:
@@ -191,6 +195,11 @@ void chess::GameManager::UpdateState()
 					_board[tarRow][tarCol] = _pieces[_playerIdx][4];
 					break;
 				}
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+				_view->DisplayUpgrades(false);
+
 				_view->UpdateBoard(tarRow, tarCol, tarRow, tarCol);
 			}
 
@@ -199,10 +208,10 @@ void chess::GameManager::UpdateState()
 			// check checkmate
 		}
 		else {
-			_view->SetText("--INVALID MOVE--", 199);
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 			// else if not avaliable
 			//    hint player to reselect avaliable move
+			_view->SetText("--INVALID MOVE--", 199);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 		break;
 	case chess::GameManager::State::END:

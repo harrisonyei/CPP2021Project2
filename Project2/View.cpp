@@ -170,6 +170,38 @@ namespace chess {
 		}
 	}
 
+	void View::DisplayUpgrades(bool display)
+	{
+		std::unique_lock<std::mutex> lock(_stdoutMtx);
+		if (display) {
+			if (_gameManager->_playerIdx == 0) {
+				for (int i = 0; i < 4; i++) {
+					DrawBlock(i, 8, 0);
+					DrawPiece(i, 8, _gameManager->_pieces[_gameManager->_playerIdx][i + 1]);
+				}
+			}
+			else {
+				for (int i = 4; i < 8; i++) {
+					DrawBlock(i, 8, 255);
+					DrawPiece(i, 8, _gameManager->_pieces[_gameManager->_playerIdx][i - 3]);
+				}
+			}
+		}
+		else {
+			if (_gameManager->_playerIdx == 0) {
+				for (int i = 0; i < 4; i++) {
+					DrawBlock(i, 8, 0);
+				}
+			}
+			else {
+				for (int i = 4; i < 8; i++) {
+					DrawBlock(i, 8, 0);
+				}
+			}
+			
+		}
+	}
+
 	void View::UpdateBoard()
 	{
 		std::unique_lock<std::mutex> lock(_stdoutMtx);
@@ -197,9 +229,10 @@ namespace chess {
 		DrawPiece(row, col);
 	}
 
-	void View::DrawPiece(const int row, const int col)
+	void View::DrawPiece(const int row, const int col, Piece* piece)
 	{
-		Piece* piece = _gameManager->_board[row][col];
+		if(piece == nullptr)
+			piece = _gameManager->_board[row][col];
 
 		if (piece == nullptr)
 			return;
@@ -305,7 +338,7 @@ namespace chess {
 						const int offsetY = row * BLOCK_H;
 						gotoxy(0, offsetY);
 						for (int i = 0; i < BLOCK_H; i++) {
-							for (int j = 0; j < 8 * BLOCK_W; j++) {
+							for (int j = 0; j < 9 * BLOCK_W; j++) {
 								setcolor(_bitmap[offsetY + i][j]);
 								std::cout << ' ';
 							}

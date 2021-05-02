@@ -5,6 +5,7 @@
 
 namespace chess {
 	class Player {
+	protected:
 		Piece::PieceColor _color;
 	public:
 		virtual void OnSelect(Piece const* const* const* board, int & sourceRow, int & sourceCol, int& targetRow, int& targetCol) = 0;
