@@ -32,7 +32,7 @@ namespace chess {
 
 		State _state;
 		View* _view;
-		Piece* _board[8][8];
+		Piece*** _board;
 		Piece* _pieces[2][16];
 		
 		void InitBoard();
@@ -40,7 +40,8 @@ namespace chess {
 
 		void SetPlayer(int idx);
 		void OnFrameUpdate(int deltaTime);
-		void OnEventUpdate();
+		void OnUpdate(int deltaTime);
+		void OnExit();
 	};
 
 }

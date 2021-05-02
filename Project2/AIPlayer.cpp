@@ -4,6 +4,6 @@ chess::AIPlayer::AIPlayer()
 {
 }
 
-void chess::AIPlayer::OnSelect(const Piece*** board, int& row, int& col)
+void chess::AIPlayer::OnSelect(Piece const*const*const* board, int& row, int& col)
 {
 }

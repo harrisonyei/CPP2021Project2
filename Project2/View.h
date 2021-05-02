@@ -19,6 +19,7 @@ namespace chess {
 	static const int ICON_W = 7;
 
 	class View {
+	public:
 		enum class GizmosType {
 			EMPTY = 0,
 			SELECT,
@@ -33,17 +34,14 @@ namespace chess {
 		void Clear();
 
 		void SetActive(bool active);
-		void HandleMouseSelect(int& row, int& col);
 
 		int Run();
-		int Stop();
-		int RegistMouseClick(std::function<void(int, int, int)> callback);
+		int ReadInput(std::function<void(int, int, int)> mouseCallback, std::function<void(void)> exitCallback);
+		void StopReadInput();
 
 		void SetText(const std::string& text);
 
-		void SetHints(const int* rows, const int* cols, const int size);
-		void SetSelect(const int row, const int col);
-		void SetCheck(const int row, const int col);
+		void SetGizmos(const int row, const int col, const View::GizmosType type);
 		void ClearGizmos();
 
 		void UpdateBoard();
@@ -55,18 +53,21 @@ namespace chess {
 		GameManager* _gameManager;
 
 		std::function<void(int, int, int)> _mouseClickCallback;
+		std::function<void(void)> _exitCallback;
 
 		std::string _text;
 		bool _active = false;
 		bool _exitFlag = false;
+
 		bool _updateRowFlag[8] = { false };
 		HANDLE _hStdin;
 		HANDLE _hStdout;
 		DWORD _fdwSaveOldMode;
 
-		std::thread* _handleUpdateThread;
-		std::promise<void> _exitSignal;
-		std::future<void> _futureObj;
+		std::thread* _handleFrameThread;
+		std::thread* _handleEventThread;
+		std::promise<void> _handleExitSignal;
+		std::promise<void> _drawExitSignal;
 		std::mutex _stdoutMtx;
 
 		// update board content
@@ -78,9 +79,10 @@ namespace chess {
 
 		// update window content
 		void updateWindow(std::future<void> futureObj);
-
 		// handle window event
-		void handleWindow();
+		void handleWindow(std::future<void> futureObj);
+
+		void updateTimer(int ms);
 
 		// window utils
 		void gotoxy(int x, int y);

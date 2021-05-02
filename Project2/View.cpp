@@ -80,11 +80,17 @@ namespace chess {
 	View::~View()
 	{
 		//Set the value in promise
-		_exitSignal.set_value();
+		_drawExitSignal.set_value();
+		_handleExitSignal.set_value();
 
 		//Wait for thread to join
-		if (_handleUpdateThread) {
-			_handleUpdateThread->join();
+		if (_handleFrameThread) {
+			_handleFrameThread->join();
+			delete _handleFrameThread;
+		}
+		if (_handleEventThread) {
+			_handleEventThread->join();
+			delete _handleEventThread;
 		}
 
 		// Restore input mode on exit.
@@ -101,78 +107,48 @@ namespace chess {
 		_active = active;
 	}
 
-	void View::HandleMouseSelect(int& row, int& col)
-	{
-		bool exitFlag = false;
-		while (!exitFlag)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(33));
-
-			DWORD cNumRead, i;
-			INPUT_RECORD irInBuf[32];
-
-			if (!ReadConsoleInput(
-				_hStdin,      // input buffer handle
-				irInBuf,     // buffer to read into
-				32,         // size of read buffer
-				&cNumRead)) // number of records read
-				//ErrorExit(LPSTR("ReadConsoleInput"));
-				continue;
-
-			// Dispatch the events to the appropriate handler.
-			for (i = 0; i < cNumRead; i++)
-			{
-				switch (irInBuf[i].EventType)
-				{
-				case MOUSE_EVENT: // mouse input
-					MouseEventProc(irInBuf[i].Event.MouseEvent);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-
 	int chess::View::Run()
 	{
-		try {
-			_exitFlag = false;
-			// Clear scream
-			clrscr();
+		_exitFlag = false;
+		// Clear scream
+		clrscr();
 
-			if (_handleUpdateThread == nullptr) {
-				// Create an async object to store shared state
-				_futureObj = _exitSignal.get_future();
-
-				// Start a window updating thread
-				_handleUpdateThread = new thread(&View::updateWindow, this, std::move(_futureObj));
-			}
-
-			// start handle event
-			handleWindow();
+		if (_handleFrameThread == nullptr) {
+			// Create an async object to store shared state
+			// Start a window updating thread
+			_handleFrameThread = new thread(&View::updateWindow, this, std::move(_drawExitSignal.get_future()));
 		}
-		catch (...) {
-			return -1;
-		}
+
+		updateTimer(30);
 
 		return 0;
 	}
 
-	int View::Stop()
+	int View::ReadInput(std::function<void(int, int, int)> mouseCallback, std::function<void(void)> exitCallback)
 	{
-		_exitFlag = true;
+		StopReadInput();
+
+		_mouseClickCallback = mouseCallback;
+		_exitCallback = exitCallback;
+
+		// Create an async object to store shared state
+		// Start a event handling thread
+		_handleEventThread = new thread(&View::handleWindow, this, std::move(_handleExitSignal.get_future()));
+
 		return 0;
 	}
 
-	int chess::View::RegistMouseClick(std::function<void(int, int, int)> callback)
+	void View::StopReadInput()
 	{
-		_mouseClickCallback = std::bind(callback, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+		if (_handleEventThread != nullptr) {
+			_handleExitSignal.set_value();
 
-		if (!_mouseClickCallback)
-			return -1;
+			_handleEventThread->join();
+			delete _handleEventThread;
 
-		return 0;
+			_handleEventThread = nullptr;
+			_handleExitSignal = std::promise<void>();
+		}
 	}
 
 	void View::SetText(const std::string& text)
@@ -180,18 +156,17 @@ namespace chess {
 		this->_text = text;
 	}
 
-	void View::SetHints(const int* rows, const int* cols, const int size)
+	void View::SetGizmos(const int row, const int col, const View::GizmosType type)
 	{
+		_gizmos[row][col] = type;
 	}
-	void View::SetSelect(const int row, const int col)
-	{
-	}
-	void View::SetCheck(const int row, const int col)
-	{
-	}
-
 	void View::ClearGizmos()
 	{
+		for (int row = 0; row < 8; row++) {
+			for (int col = 0; col < 8; col++) {
+				_gizmos[row][col] = GizmosType::EMPTY;
+			}
+		}
 	}
 
 	void View::UpdateBoard()
@@ -277,10 +252,23 @@ namespace chess {
 	void View::DrawGIZMOS(const int row, const int col)
 	{
 		// color : 68 dark red
-		//if (col == _selectedCol && row == _selectedRow) {
-		//	// color : 238 yellow
-		//	DrawBlock(row, col, 238);
-		//}
+		// color : 238 yellow
+		switch (_gizmos[row][col])
+		{
+		case chess::View::GizmosType::EMPTY:
+			break;
+		case chess::View::GizmosType::SELECT:
+			DrawBlock(row, col, 238); 
+			break;
+		case chess::View::GizmosType::HINT:
+			DrawBlock(row, col, 238);
+			break;
+		case chess::View::GizmosType::CHECK:
+			DrawBlock(row, col, 238);
+			break;
+		default:
+			break;
+		}
 	}
 
 	void chess::View::DrawBackground(const int row, const int col)
@@ -334,46 +322,56 @@ namespace chess {
 		}
 	}
 
-	void chess::View::handleWindow()
+	void chess::View::handleWindow(std::future<void> futureObj)
 	{
-		while (!_exitFlag)
+		while (!_exitFlag && (futureObj.wait_for(std::chrono::milliseconds(30)) == std::future_status::timeout))
 		{
-			DWORD cNumRead, i;
-			INPUT_RECORD irInBuf[32];
+			if (_active) {
+				DWORD cNumRead, i;
+				INPUT_RECORD irInBuf[32];
 
-			if (!ReadConsoleInput(
-				_hStdin,      // input buffer handle
-				irInBuf,     // buffer to read into
-				32,         // size of read buffer
-				&cNumRead)) // number of records read
-				//ErrorExit(LPSTR("ReadConsoleInput"));
-				continue;
+				if (!ReadConsoleInput(
+					_hStdin,      // input buffer handle
+					irInBuf,     // buffer to read into
+					32,         // size of read buffer
+					&cNumRead)) // number of records read
+					//ErrorExit(LPSTR("ReadConsoleInput"));
+					continue;
 
-			// Dispatch the events to the appropriate handler.
-			for (i = 0; i < cNumRead; i++)
-			{
-				switch (irInBuf[i].EventType)
+				// Dispatch the events to the appropriate handler.
+				for (i = 0; i < cNumRead; i++)
 				{
-				case KEY_EVENT: // keyboard input
-					if(irInBuf[i].Event.KeyEvent.wVirtualKeyCode ==  VK_ESCAPE)
-						_exitFlag = true;
-					//KeyEventProc(irInBuf[i].Event.KeyEvent);
-					break;
-
-				case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
-					ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
-					break;
-
-				default:
-					break;
+					switch (irInBuf[i].EventType)
+					{
+					case MOUSE_EVENT: // mouse input
+						MouseEventProc(irInBuf[i].Event.MouseEvent);
+					break; case KEY_EVENT: // keyboard input
+						if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_ESCAPE) {
+							_exitFlag = true;
+							if(_exitCallback)
+								_exitCallback();
+							_gameManager->OnExit();
+						}
+						//KeyEventProc(irInBuf[i].Event.KeyEvent);
+						break;
+					case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
+						ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
+						break;
+					default:
+						break;
+					}
 				}
 			}
-
-			_gameManager->OnEventUpdate();
-
 		}
 	}
 
+	void View::updateTimer(int ms)
+	{
+		while (!_exitFlag) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			_gameManager->OnUpdate(ms);
+		}
+	}
 
 	void View::setcolor(WORD color)
 	{

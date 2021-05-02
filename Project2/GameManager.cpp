@@ -11,7 +11,9 @@
 
 chess::GameManager::GameManager()
 {
+	_board = new Piece**[8];
 	for (int i = 0; i < 8; i++) {
+		_board[i] = new Piece*[8];
 		for (int j = 0; j < 8; j++) {
 			_board[i][j] = nullptr;
 		}
@@ -68,6 +70,7 @@ int chess::GameManager::Run()
 		std::cout << std::endl;
 		std::cout << "Enter > ";
 
+		std::cin.clear();
 		char cmd = _getch();
 
 		// delete last player configs
@@ -93,6 +96,8 @@ int chess::GameManager::Run()
 
 		_view->SetActive(true);
 		_view->Run();
+
+		while (_state != chess::GameManager::State::END);
 	}
 
 	return 0;
@@ -106,6 +111,7 @@ void chess::GameManager::InitBoard()
 		_board[1][i] = _pieces[0][8 + i];
 		_board[6][i] = _pieces[1][8 + i];
 	}
+	_view->ClearGizmos();
 	_view->UpdateBoard();
 }
 
@@ -116,19 +122,22 @@ void chess::GameManager::UpdateState()
 	{
 	case chess::GameManager::State::START:
 		_view->SetText("--PRESS ANY KEY TO START--");
-
 		// wait for any key;
+		std::cin.clear(); 
 		_getch();
 
 		SetPlayer(0);
-
 		_view->SetText("START");
-
 		_state = State::PLAY;
-
 		break;
 	case chess::GameManager::State::PLAY:
-		//_players[_playerIdx]->OnSelect();
+		int selected_row, selected_col;
+		_players[_playerIdx]->OnSelect(_board, selected_row, selected_col);
+		// if avaliable
+		//     move
+		//     switch player
+		// else if not avaliable
+		//    hint player to reselect avaliable move
 		break;
 	case chess::GameManager::State::END:
 		break;
@@ -146,8 +155,13 @@ void chess::GameManager::OnFrameUpdate(int deltaTime)
 {
 }
 
-void chess::GameManager::OnEventUpdate()
+void chess::GameManager::OnUpdate(int deltaTime)
 {
 	UpdateState();
+}
+
+void chess::GameManager::OnExit()
+{
+	_state = chess::GameManager::State::END;
 }
 

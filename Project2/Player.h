@@ -1,14 +1,12 @@
 #ifndef CHESS_PLAYER_H_
 #define CHESS_PLAYER_H_
 
-#include <functional>
-
 namespace chess {
 	class Piece;
 
 	class Player {
 	public:
-		virtual void OnSelect(const Piece*** board, int& row, int& col) = 0;
+		virtual void OnSelect(Piece const*const*const* board, int& row, int& col) = 0;
 	};
 
 }
