@@ -33,12 +33,13 @@ namespace chess {
 		void Clear();
 
 		void SetActive(bool active);
-
 		void HandleMouseSelect(int& row, int& col);
 
 		int Run();
 		int Stop();
 		int RegistMouseClick(std::function<void(int, int, int)> callback);
+
+		void SetText(const std::string& text);
 
 		void SetHints(const int* rows, const int* cols, const int size);
 		void SetSelect(const int row, const int col);
@@ -55,6 +56,7 @@ namespace chess {
 
 		std::function<void(int, int, int)> _mouseClickCallback;
 
+		std::string _text;
 		bool _active = false;
 		bool _exitFlag = false;
 		bool _updateRowFlag[8] = { false };

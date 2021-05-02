@@ -1,7 +1,7 @@
 #ifndef CHESS_PLAYER_H_
 #define CHESS_PLAYER_H_
 
-
+#include <functional>
 
 namespace chess {
 	class Piece;

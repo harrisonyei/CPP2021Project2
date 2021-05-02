@@ -10,8 +10,6 @@ chess::HumanPlayer::HumanPlayer(View* view) :Player()
 
 void chess::HumanPlayer::OnSelect(const Piece*** board, int& row, int& col)
 {
-	// regist callback
-
 	// run handle
 
 	// return result

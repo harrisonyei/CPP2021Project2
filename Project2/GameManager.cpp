@@ -1,6 +1,7 @@
 #include "GameManager.h"
 #include "View.h"
-#include "Player.h"
+#include "HumanPlayer.h"
+#include "AIPlayer.h"
 #include "Pieces.h"
 
 #include <functional>
@@ -68,11 +69,20 @@ int chess::GameManager::Run()
 		std::cout << "Enter > ";
 
 		char cmd = _getch();
-		if (cmd == '0') {
 
+		// delete last player configs
+		for(int i = 0; i < 2; i++)
+			if (_players[i] != nullptr) {
+				delete _players[i];
+			}
+
+		if (cmd == '0') {
+			_players[0] = new HumanPlayer(_view);
+			_players[1] = new HumanPlayer(_view);
 		}
 		else if (cmd == '1') {
-
+			_players[0] = new HumanPlayer(_view);
+			_players[1] = new AIPlayer();
 		}
 		else {
 			return 0;
@@ -99,6 +109,45 @@ void chess::GameManager::InitBoard()
 	_view->UpdateBoard();
 }
 
-void chess::GameManager::OnUpdate(int deltaTime)
+void chess::GameManager::UpdateState()
+{
+	char c;
+	switch (_state)
+	{
+	case chess::GameManager::State::START:
+		_view->SetText("--PRESS ANY KEY TO START--");
+
+		// wait for any key;
+		_getch();
+
+		SetPlayer(0);
+
+		_view->SetText("START");
+
+		_state = State::PLAY;
+
+		break;
+	case chess::GameManager::State::PLAY:
+		//_players[_playerIdx]->OnSelect();
+		break;
+	case chess::GameManager::State::END:
+		break;
+	default:
+		break;
+	}
+}
+
+void chess::GameManager::SetPlayer(int idx)
+{
+	_playerIdx = idx;
+}
+
+void chess::GameManager::OnFrameUpdate(int deltaTime)
 {
 }
+
+void chess::GameManager::OnEventUpdate()
+{
+	UpdateState();
+}
+

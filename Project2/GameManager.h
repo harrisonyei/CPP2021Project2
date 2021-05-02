@@ -11,8 +11,7 @@ namespace chess {
 	{
 		enum class State {
 			START = 0,
-			SELECT_PIECE,
-			SELECT_MOVE,
+			PLAY,
 			END,
 		};
 
@@ -26,7 +25,10 @@ namespace chess {
 		friend class View;
 
 	private:
-		Player* player[2];
+
+		int _playerIdx = 0;
+
+		Player* _players[2] = {nullptr, nullptr};
 
 		State _state;
 		View* _view;
@@ -34,8 +36,11 @@ namespace chess {
 		Piece* _pieces[2][16];
 		
 		void InitBoard();
-		void OnUpdate(int deltaTime);
+		void UpdateState();
 
+		void SetPlayer(int idx);
+		void OnFrameUpdate(int deltaTime);
+		void OnEventUpdate();
 	};
 
 }

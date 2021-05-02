@@ -175,6 +175,11 @@ namespace chess {
 		return 0;
 	}
 
+	void View::SetText(const std::string& text)
+	{
+		this->_text = text;
+	}
+
 	void View::SetHints(const int* rows, const int* cols, const int size)
 	{
 	}
@@ -303,7 +308,7 @@ namespace chess {
 		while (futureObj.wait_for(std::chrono::milliseconds(100)) == std::future_status::timeout)
 		{
 			if (_active) {
-				_gameManager->OnUpdate(100);
+				_gameManager->OnFrameUpdate(100);
 				std::unique_lock<std::mutex> lock(_stdoutMtx);
 				for (int row = 0; row < 8; row++) {
 					if (_updateRowFlag[row]) {
@@ -322,6 +327,8 @@ namespace chess {
 				gotoxy(0, 8 * BLOCK_H);
 				setcolor(7); // normal setting
 				std::cout << "update " << c++ << "    " << std::endl;
+				std::cout << _text << std::endl;
+				std::cout << std::endl;
 				std::cout << "ESC - back to menu" << std::endl;
 			}
 		}
@@ -361,6 +368,9 @@ namespace chess {
 					break;
 				}
 			}
+
+			_gameManager->OnEventUpdate();
+
 		}
 	}
 

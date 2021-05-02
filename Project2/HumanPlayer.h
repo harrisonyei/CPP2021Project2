@@ -5,7 +5,7 @@
 
 namespace chess {
 	class View;
-	class HumanPlayer : Player{
+	class HumanPlayer : public Player{
 	public:
 		HumanPlayer(View* view);
 		void OnSelect(const Piece*** board, int& row, int& col) override;
