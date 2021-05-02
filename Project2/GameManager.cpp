@@ -73,11 +73,16 @@ int chess::GameManager::Run()
 
 		if (cmd == '0') {
 			_players[0] = new HumanPlayer(_view);
+			_players[0]->SetColor(Piece::PieceColor::WHITE);
 			_players[1] = new HumanPlayer(_view);
+			_players[1]->SetColor(Piece::PieceColor::BLACK);
 		}
 		else if (cmd == '1') {
 			_players[0] = new HumanPlayer(_view);
-			_players[1] = new AIPlayer();
+			_players[0]->SetColor(Piece::PieceColor::WHITE);
+			_players[1] = new HumanPlayer(_view);
+			_players[1]->SetColor(Piece::PieceColor::BLACK);
+			//_players[1] = new AIPlayer();
 		}
 		else {
 			return 0;
@@ -138,14 +143,29 @@ void chess::GameManager::UpdateState()
 		_state = State::PLAY;
 		break;
 	case chess::GameManager::State::PLAY:
+		if (_playerIdx == 0) {
+			_view->SetText("--WHITE's turn----------");
+		}
+		else {
+			_view->SetText("--BLACK's turn----------");
+		}
+
 		int srcRow, srcCol, tarRow, tarCol;
 		_players[_playerIdx]->OnSelect(_board, srcRow, srcCol, tarRow, tarCol);
 
-		if (_board[srcRow][srcCol] != nullptr) {
-			// if avaliable
+		// if state interupt
+		if (_state != chess::GameManager::State::PLAY)
+			break;
+
+		// if avaliable
+		if (srcRow >= 0 && srcRow < 8 && srcCol >= 0 && srcCol < 8 && _board[srcRow][srcCol] != nullptr &&
+			tarRow >= 0 && tarRow < 8 && tarCol >= 0 && tarCol < 8 && (_board[srcRow][srcCol]->GetColor() == _players[_playerIdx]->GetColor())) {
+			
 			//     move
-			_board[tarRow][tarCol] = _board[srcRow][srcCol];
+			Piece* tmp = _board[srcRow][srcCol];
 			_board[srcRow][srcCol] = nullptr;
+			_board[tarRow][tarCol] = tmp;
+
 			_view->UpdateBoard(srcRow, srcCol, tarRow, tarCol);
 
 			// if piece can upgrade
@@ -175,14 +195,15 @@ void chess::GameManager::UpdateState()
 			}
 
 			// switch player
+			_playerIdx = ((_playerIdx == 0) ? 1 : 0);
 			// check checkmate
 		}
 		else {
-			_view->SetText("--INVALID MOVE----");
+			_view->SetText("--INVALID MOVE--", 199);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 			// else if not avaliable
 			//    hint player to reselect avaliable move
 		}
-
 		break;
 	case chess::GameManager::State::END:
 		break;

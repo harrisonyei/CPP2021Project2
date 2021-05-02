@@ -39,7 +39,7 @@ namespace chess {
 		int ReadInput(std::function<void(int, int, int)> mouseCallback, std::function<void(void)> exitCallback);
 		void StopReadInput();
 
-		void SetText(const std::string& text);
+		void SetText(const std::string& text, const unsigned char color = 7);
 
 		void SetGizmos(const int row, const int col, const View::GizmosType type);
 		void ClearGizmos();
@@ -56,6 +56,8 @@ namespace chess {
 		std::function<void(void)> _exitCallback;
 
 		std::string _text;
+		unsigned char _textColor;
+
 		bool _active = false;
 		bool _exitFlag = false;
 

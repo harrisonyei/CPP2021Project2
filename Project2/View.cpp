@@ -151,9 +151,10 @@ namespace chess {
 		}
 	}
 
-	void View::SetText(const std::string& text)
+	void View::SetText(const std::string& text, const unsigned char color)
 	{
 		this->_text = text;
+		_textColor = color;
 	}
 
 	void View::SetGizmos(const int row, const int col, const View::GizmosType type)
@@ -315,7 +316,11 @@ namespace chess {
 				gotoxy(0, 8 * BLOCK_H);
 				setcolor(7); // normal setting
 				std::cout << "update " << c++ << "    " << std::endl;
+
+				setcolor(_textColor); // normal setting
 				std::cout << _text << std::endl;
+
+				setcolor(7); // normal setting
 				std::cout << std::endl;
 				std::cout << "ESC - back to menu" << std::endl;
 			}
