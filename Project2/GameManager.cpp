@@ -158,7 +158,14 @@ void chess::GameManager::InitBoard()
 		_board[1][i] = _pieces[1][0];
 		_board[6][i] = _pieces[0][0];
 	}
-	_view->ClearGizmos();
+
+	_kingPos[1][0] = 0;
+	_kingPos[1][1] = 4;
+
+	_kingPos[0][0] = 7;
+	_kingPos[0][1] = 4;
+
+	_view->ClearGizmos(View::GizmosType::ALL);
 	_view->UpdateBoard();
 }
 
@@ -203,16 +210,33 @@ void chess::GameManager::UpdateState()
 			// move
 			Piece* movePiece = _board[srcRow][srcCol];
 			movePiece->GetMovements(_board, srcRow, srcCol, _moves);
+			Piece* targetPiece = _board[tarRow][tarCol];
 
-			// if move is legal
 			if (_moves[tarRow][tarCol]) {
 
-				validMove = true;
+				// predict move
+				_board[srcRow][srcCol] = nullptr;
+				_board[tarRow][tarCol] = movePiece;
 
-				Piece* targetPiece = _board[tarRow][tarCol];
+				// king
+				King* king = (King*)(_pieces[_playerIdx][5]);
+				validMove = king->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
+
+				// restore
+				_board[srcRow][srcCol] = movePiece;
+				_board[tarRow][tarCol] = targetPiece;
+			}
+
+			// if move is legal
+			if (validMove) {
+
+				// if is king, save position
+				if (movePiece->GetType() == Piece::PieceType::KING) {
+					_kingPos[_playerIdx][0] = tarCol;
+					_kingPos[_playerIdx][1] = tarRow;
+				}
 
 				updateLocations.clear();
-
 				// if is castling
 				if ((movePiece->GetType() == Piece::PieceType::KING) && abs(tarCol - srcCol) > 1) {
 					if (tarCol == 2) {
@@ -309,6 +333,41 @@ void chess::GameManager::UpdateState()
 				// switch player
 				_playerIdx = ((_playerIdx == 0) ? 1 : 0);
 				// check checkmate
+				// king
+				King* tempKing = (King*)(_pieces[_playerIdx][5]);
+				if (!tempKing->isSafe(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1])) {
+					tempKing->GetMovements(_board, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1], _moves);
+					bool canMove = false;
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++) {
+							if (_moves[i][j]) {
+								canMove = true;
+								break;
+							}
+						}
+					}
+
+					_view->SetGizmos(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], View::GizmosType::WARN);
+					_view->UpdateBoard(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
+
+					// game over
+					if (!canMove) {
+						if (_playerIdx == 0) {
+							_view->SetText("--BLACK WINS! PRESS ANY KEY TO EXIT--");
+						}
+						else {
+							_view->SetText("--WHITE WINS! PRESS ANY KEY TO EXIT--");
+						}
+						// wait for any key;
+						std::cin.clear();
+						_getch();
+						_state = State::END;
+					}
+				}
+				else {
+					_view->ClearGizmos(View::GizmosType::WARN);
+					_view->UpdateBoard();
+				}
 			}
 		}
 

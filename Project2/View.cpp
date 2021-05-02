@@ -159,13 +159,15 @@ namespace chess {
 
 	void View::SetGizmos(const int row, const int col, const View::GizmosType type)
 	{
-		_gizmos[row][col] = type;
+		if(_gizmos[row][col] == View::GizmosType::EMPTY)
+			_gizmos[row][col] = type;
 	}
-	void View::ClearGizmos()
+	void View::ClearGizmos(const View::GizmosType type)
 	{
 		for (int row = 0; row < 8; row++) {
 			for (int col = 0; col < 8; col++) {
-				_gizmos[row][col] = GizmosType::EMPTY;
+				if(((int)type & (int)_gizmos[row][col]))
+					_gizmos[row][col] = GizmosType::EMPTY;
 			}
 		}
 	}
@@ -297,7 +299,7 @@ namespace chess {
 		{
 		case chess::View::GizmosType::EMPTY:
 			break;
-		case chess::View::GizmosType::SELECT:
+		case chess::View::GizmosType::WARN:
 			// dark red 205 69
 			DrawBorder(row, col, (((row & 1) ^ (col & 1)) ? 205 : 69));
 			break;
@@ -445,6 +447,8 @@ namespace chess {
 		while (!_exitFlag) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 			_gameManager->OnUpdate(ms);
+			if (_gameManager->_state == GameManager::State::END)
+				_exitFlag = true;
 		}
 	}
 

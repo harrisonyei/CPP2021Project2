@@ -36,7 +36,7 @@ void chess::HumanPlayer::OnSelect(Piece const* const* const* board, int& sourceR
 
 	_view->StopReadInput();
 
-	_view->ClearGizmos();
+	_view->ClearGizmos(View::GizmosType::HINT);
 	_view->UpdateBoard();
 
 	// return result
@@ -76,7 +76,7 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 		case chess::HumanPlayer::SelectState::SELECT_PIECE:
 			if (row >= 0 && row < 8 && col >= 0 && col < 8) {
 				if (_board[row][col] != nullptr && _board[row][col]->GetColor() == _color) {
-					_view->ClearGizmos();
+					_view->ClearGizmos(View::GizmosType::HINT);
 					_view->SetGizmos(row, col, View::GizmosType::HINT);
 
 					_board[row][col]->GetMovements(_board, row, col, _moves);
@@ -102,7 +102,7 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 			if (row >= 0 && row < 8 && col >= 0 && col < 8) {
 				// if select another piece
 				if (_board[row][col] != nullptr && _board[row][col]->GetColor() == _color) {
-					_view->ClearGizmos();
+					_view->ClearGizmos(View::GizmosType::HINT);
 					_view->SetGizmos(row, col, View::GizmosType::HINT);
 
 					_board[row][col]->GetMovements(_board, row, col, _moves);
@@ -161,7 +161,7 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 		case chess::HumanPlayer::SelectState::SELECT_MOVE:
 			// back to select piece
 			_state = SelectState::SELECT_PIECE;
-			_view->ClearGizmos();
+			_view->ClearGizmos(View::GizmosType::HINT);
 			_view->UpdateBoard();
 		case chess::HumanPlayer::SelectState::SELECT_UPGRADE:
 			break;

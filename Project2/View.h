@@ -22,9 +22,10 @@ namespace chess {
 	public:
 		enum class GizmosType {
 			EMPTY = 0,
-			SELECT,
-			HINT,
-			CHECK
+			WARN = 0b0001,
+			HINT = 0b0010,
+			CHECK = 0b0100,
+			ALL = 0b1111
 		};
 
 	public:
@@ -42,7 +43,7 @@ namespace chess {
 		void SetText(const std::string& text, const unsigned char color = 7);
 
 		void SetGizmos(const int row, const int col, const View::GizmosType type);
-		void ClearGizmos();
+		void ClearGizmos(const View::GizmosType type);
 
 		void DisplayUpgrades(bool display);
 		void UpdateBoard();

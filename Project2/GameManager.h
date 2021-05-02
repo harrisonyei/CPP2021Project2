@@ -16,7 +16,6 @@ namespace chess {
 		};
 
 	public:
-
 		GameManager();
 		~GameManager();
 
@@ -34,6 +33,9 @@ namespace chess {
 		View* _view;
 		Piece*** _board;
 		Piece* _pieces[2][9];
+
+		int _kingPos[2][2] = { {0,0},{0,0} };
+
 		bool** _moves;
 
 		void InitBoard();
