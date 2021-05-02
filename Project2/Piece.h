@@ -25,16 +25,16 @@ namespace chess {
 		Piece(const PieceColor color, const PieceType type) : _color(color), _type(type){
 
 		}
-		const PieceType GetType() {
+		const PieceType GetType() const {
 			return _type;
 		}
-		const PieceColor GetColor() {
+		const PieceColor GetColor() const {
 			return _color;
 		}
 
-		virtual void GetMovements(Piece const*const*const* board, const int x, const int y, bool ** movements) const = 0;
+		virtual void GetMovements(Piece const*const*const* board, const int row, const int col, bool ** movements) const = 0;
 
-	private:
+	protected:
 		PieceColor _color;
 		PieceType _type;
 	};

@@ -79,6 +79,7 @@ namespace chess {
 		void DrawGIZMOS(const int row, const int col);
 		void DrawBackground(const int row, const int col);
 		void DrawBlock(const int row, const int col, const unsigned char color);
+		void DrawBorder(const int row, const int col, const unsigned char color);
 
 		// update window content
 		void updateWindow(std::future<void> futureObj);

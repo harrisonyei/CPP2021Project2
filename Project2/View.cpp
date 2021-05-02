@@ -285,20 +285,21 @@ namespace chess {
 
 	void View::DrawGIZMOS(const int row, const int col)
 	{
-		// color : 68 dark red
-		// color : 238 yellow
 		switch (_gizmos[row][col])
 		{
 		case chess::View::GizmosType::EMPTY:
 			break;
 		case chess::View::GizmosType::SELECT:
-			DrawBlock(row, col, 238); 
+			// dark red 205 69
+			DrawBlock(row, col, (((row & 1) ^ (col & 1)) ? 205 : 69));
 			break;
 		case chess::View::GizmosType::HINT:
-			DrawBlock(row, col, 238);
+			// yellow 238 102
+			DrawBlock(row, col, (((row & 1) ^ (col & 1)) ? 238 : 102));
 			break;
 		case chess::View::GizmosType::CHECK:
-			DrawBlock(row, col, 238);
+			// bright red
+			DrawBlock(row, col, 204);
 			break;
 		default:
 			break;
@@ -317,6 +318,23 @@ namespace chess {
 	{
 		for (int i = 0; i < BLOCK_H; i++) {
 			for (int j = 0; j < BLOCK_W; j++) {
+				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
+			}
+		}
+		// Set update window flag to redraw this row
+		_updateRowFlag[row] = true;
+	}
+
+	void View::DrawBorder(const int row, const int col, const unsigned char color)
+	{
+		const int w = 2;
+		const int h = 1;
+
+		for (int i = 0; i < h; i++) {
+			for (int j = 0; j < BLOCK_W; j++) {
+				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
+			}
+			for (int j = 0; j < BLOCK_W * 0.2f; j++) {
 				_bitmap[row * BLOCK_H + i][col * BLOCK_W + j] = color;
 			}
 		}

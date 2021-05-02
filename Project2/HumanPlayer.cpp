@@ -75,17 +75,18 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 		{
 		case chess::HumanPlayer::SelectState::SELECT_PIECE:
 			if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-				if (_board[row][col] != nullptr) {
+				if (_board[row][col] != nullptr && _board[row][col]->GetColor() == _color) {
 					_view->ClearGizmos();
-					_view->SetGizmos(row, col, View::GizmosType::SELECT);
+					_view->SetGizmos(row, col, View::GizmosType::HINT);
 
 					_board[row][col]->GetMovements(_board, row, col, _moves);
 
 					for (int i = 0; i < 8; i++) {
 						for (int j = 0; j < 8; j++)
 						{
-							if (_moves[i][j])
-								_view->SetGizmos(row, col, View::GizmosType::HINT);
+							if (_moves[i][j]) {
+								_view->SetGizmos(i, j, View::GizmosType::HINT);
+							}
 						}
 					}
 					_view->UpdateBoard();
@@ -99,12 +100,35 @@ void chess::HumanPlayer::OnMouseClick(int row, int col, int btn)
 			break;
 		case chess::HumanPlayer::SelectState::SELECT_MOVE:
 			if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-				_state = SelectState::END;
+				// if select another piece
+				if (_board[row][col] != nullptr && _board[row][col]->GetColor() == _color) {
+					_view->ClearGizmos();
+					_view->SetGizmos(row, col, View::GizmosType::HINT);
 
-				_target_row = row;
-				_target_col = col;
+					_board[row][col]->GetMovements(_board, row, col, _moves);
 
-				_cv.notify_all();
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++)
+						{
+							if (_moves[i][j]) {
+								_view->SetGizmos(i, j, View::GizmosType::HINT);
+							}
+						}
+					}
+					_view->UpdateBoard();
+
+					_state = SelectState::SELECT_MOVE;
+
+					_source_row = row;
+					_source_col = col;
+				}
+				else {
+					_state = SelectState::END;
+					_target_row = row;
+					_target_col = col;
+
+					_cv.notify_all();
+				}
 			}
 			break;
 		case chess::HumanPlayer::SelectState::SELECT_UPGRADE:
