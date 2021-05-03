@@ -20,7 +20,9 @@ namespace chess {
 			// line
 			if (row == 1) {
 				movements[2][col] = (board[2][col] == nullptr);
-				movements[3][col] = (board[3][col] == nullptr);
+				if (movements[2][col]) {
+					movements[3][col] = (board[3][col] == nullptr);
+				}
 			}
 			else if (row < 7) {
 				movements[row + 1][col] = (board[row + 1][col] == nullptr);
@@ -40,7 +42,9 @@ namespace chess {
 			// line
 			if (row == 6) {
 				movements[5][col] = (board[5][col] == nullptr);
-				movements[4][col] = (board[4][col] == nullptr);
+				if (movements[5][col]) {
+					movements[4][col] = (board[4][col] == nullptr);
+				}
 			}
 			else if (row > 0) {
 				movements[row - 1][col] = (board[row - 1][col] == nullptr);

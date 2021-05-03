@@ -221,7 +221,7 @@ namespace chess {
 				int iicol = icol + DIRS[i][1];
 				while (iirow >= 0 && iirow < 8 && iicol >= 0 && iicol < 8) {
 					if (board[iirow][iicol] == nullptr || board[iirow][iicol]->GetType() == PieceType::TMP_PAWN
-						|| board[iirow][iicol]->GetType() == PieceType::KING) {
+						|| board[iirow][iicol] == this) {
 
 					}
 					else if (board[iirow][iicol]->GetColor() != _color &&
@@ -244,7 +244,7 @@ namespace chess {
 				int iicol = icol + DIRS[i][1];
 				while (iirow >= 0 && iirow < 8 && iicol >= 0 && iicol < 8) {
 					if (board[iirow][iicol] == nullptr || board[iirow][iicol]->GetType() == PieceType::TMP_PAWN
-						|| board[iirow][iicol]->GetType() == PieceType::KING) {
+						|| board[iirow][iicol] == this) {
 
 					}
 					else if (board[iirow][iicol]->GetColor() != _color &&
