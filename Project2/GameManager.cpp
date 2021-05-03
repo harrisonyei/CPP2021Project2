@@ -391,12 +391,12 @@ void chess::GameManager::UpdateState()
 				//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 				if (haveValidMove) {
+					_view->ClearGizmos(View::GizmosType::WARN);
 					if (!safe) {
 						_view->SetGizmos(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], View::GizmosType::WARN);
-						_view->UpdateBoard(_kingPos[_playerIdx][0], _kingPos[_playerIdx][1], _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
+						_view->UpdateBoard(srcRow, srcCol, _kingPos[_playerIdx][0], _kingPos[_playerIdx][1]);
 					}
 					else {
-						_view->ClearGizmos(View::GizmosType::WARN);
 						_view->UpdateBoard();
 					}
 				}
